@@ -3,6 +3,7 @@ mod commands;
 mod db;
 mod embeddings;
 mod git;
+mod license;
 mod scanner;
 mod vault;
 
