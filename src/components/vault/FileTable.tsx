@@ -143,7 +143,7 @@ export function FileTable({
   });
 
   return (
-    <div className="overflow-auto flex-1">
+    <div data-tour-target="vault-file-table" className="overflow-auto flex-1">
       <table className="w-full border-collapse text-sm">
         <thead className="sticky top-0 z-10 bg-[var(--color-surface)]">
           {table.getHeaderGroups().map((hg) => (

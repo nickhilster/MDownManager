@@ -128,7 +128,7 @@ export function SettingsPage() {
       </div>
 
       {/* Cloud API Keys */}
-      <section className="space-y-4">
+      <section data-tour-target="settings-ai-keys" className="space-y-4">
         <div className="flex items-center gap-2">
           <KeyRound size={15} className="text-[var(--color-accent)]" />
           <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
@@ -185,7 +185,7 @@ export function SettingsPage() {
       </section>
 
       {/* API Access */}
-      <section className="space-y-4">
+      <section data-tour-target="settings-agent-api" className="space-y-4">
         <div className="flex items-center gap-2">
           <Zap size={15} className="text-[var(--color-accent)]" />
           <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">

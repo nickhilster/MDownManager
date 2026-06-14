@@ -18,7 +18,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
   return (
     <aside className="w-14 flex flex-col items-center py-4 bg-[var(--color-surface)] border-r border-[var(--color-border-subtle)] shrink-0">
       {/* Logo mark */}
-      <div className="w-8 h-8 rounded bg-[var(--color-accent)] flex items-center justify-center mb-4">
+      <div data-tour-target="sidebar-logo" className="w-8 h-8 rounded bg-[var(--color-accent)] flex items-center justify-center mb-4">
         <span className="text-white font-bold text-xs">M</span>
       </div>
 
@@ -27,6 +27,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
         {navItems.map(({ icon: Icon, label, id, page }) => (
           <button
             key={id}
+            data-tour-target={id === "scanner" ? "scanner-nav" : undefined}
             title={page ? label : `${label} (coming soon)`}
             onClick={() => page && onNavigate(page)}
             className={cn(
