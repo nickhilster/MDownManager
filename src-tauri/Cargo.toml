@@ -1,0 +1,77 @@
+[package]
+name = "mdownmanager"
+version = "0.1.0"
+description = "MdownManager — Local/Cloud LLM-Powered Markdown Management & Security Platform"
+authors = ["Teambotics Inc."]
+edition = "2021"
+
+[lib]
+name = "mdownmanager_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Database
+rusqlite = { version = "0.32", features = ["bundled", "vtab", "array"] }
+
+# Filesystem watching
+notify = "7"
+
+# Git integration
+git2 = "0.20"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# HTTP client (for Ollama)
+reqwest = { version = "0.12", default-features = false, features = ["json", "native-tls"] }
+
+# Markdown parsing
+pulldown-cmark = "0.12"
+
+# Hashing
+sha2 = "0.10"
+hex = "0.4"
+
+# Glob patterns
+glob = "0.3"
+
+# Pattern scanning
+regex = "1"
+toml = "0.8"
+
+# Error handling
+anyhow = "1"
+thiserror = "2"
+
+# Logging
+log = "0.4"
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# UUID
+uuid = { version = "1", features = ["v4"] }
+
+# Open files in system default app
+open = "5"
+
+# Paths
+dirs = "5"
+
+# Local HTTP API server for IDE agent integration
+axum = "0.8"
+tower-http = { version = "0.6", features = ["cors"] }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]

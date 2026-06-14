@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+/* ── Dark theme (default) ──────────────────────────────────────────────── */
+:root {
+  --color-background: #0f1117;
+  --color-surface: #1a1d27;
+  --color-surface-2: #22263a;
+  --color-border: #2e3347;
+  --color-border-subtle: #1e2235;
+
+  --color-text-primary: #e8eaf0;
+  --color-text-secondary: #8b91a8;
+  --color-text-muted: #555d78;
+
+  --color-accent: #22c55e;
+  --color-accent-hover: #4ade80;
+  --color-accent-bg: rgba(34, 197, 94, 0.12);
+
+  --color-risk-low: #22c55e;
+  --color-risk-medium: #f59e0b;
+  --color-risk-high: #ef4444;
+  --color-risk-critical: #dc2626;
+
+  --font-sans: "Inter", "system-ui", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  /* Font size presets */
+  --font-size-base: 14px;
+  --font-size-sm: 12px;
+  --font-size-xs: 11px;
+}
+
+/* ── Light theme ────────────────────────────────────────────────────────── */
+:root.light {
+  --color-background: #f5f6fa;
+  --color-surface: #ffffff;
+  --color-surface-2: #eef0f6;
+  --color-border: #d4d8e8;
+  --color-border-subtle: #e4e7f0;
+
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-muted: #9ca3af;
+
+  --color-accent: #16a34a;
+  --color-accent-hover: #15803d;
+  --color-accent-bg: rgba(22, 163, 74, 0.10);
+}
+
+/* ── Font size presets ─────────────────────────────────────────────────── */
+:root.font-small {
+  --font-size-base: 12px;
+  --font-size-sm: 11px;
+  --font-size-xs: 10px;
+}
+
+:root.font-medium {
+  --font-size-base: 14px;
+  --font-size-sm: 12px;
+  --font-size-xs: 11px;
+}
+
+:root.font-large {
+  --font-size-base: 16px;
+  --font-size-sm: 14px;
+  --font-size-xs: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}

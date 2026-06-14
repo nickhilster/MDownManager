@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MdownManager — Investor Brief</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d0d0d;
+    --paper: #f7f5f0;
+    --muted: #8a8680;
+    --accent: #2d5a3d;
+    --accent-light: #e8f0eb;
+    --rule: #d8d4cc;
+    --data: #1a3a52;
+    --warn: #7a3520;
+    --warn-light: #f5ece8;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Instrument Serif', serif;
+    --sans: 'Inter', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── TICKER BAR ── */
+  .ticker {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    padding: 8px 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .ticker-inner {
+    display: inline-block;
+    animation: scroll-left 32s linear infinite;
+  }
+  .ticker-inner span { margin: 0 48px; opacity: 0.7; }
+  .ticker-inner strong { opacity: 1; color: #a8d4b5; }
+  @keyframes scroll-left {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* ── NAV ── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 60px;
+    border-bottom: 1px solid var(--rule);
+    position: sticky;
+    top: 0;
+    background: rgba(247,245,240,0.96);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+  }
+  .logo {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+  .logo em { color: var(--accent); font-style: normal; }
+  .nav-links {
+    display: flex; gap: 32px;
+    list-style: none;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+  .nav-links a { text-decoration: none; color: inherit; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-cta {
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: background 0.2s;
+  }
+  .nav-cta:hover { background: var(--accent); }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 100px 60px 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 80px;
+    align-items: start;
+  }
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 28px;
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(44px, 5.5vw, 72px);
+    line-height: 1.06;
+    letter-spacing: -0.02em;
+    margin-bottom: 32px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .hero-sub {
+    font-size: 18px;
+    line-height: 1.65;
+    color: #3a3835;
+    max-width: 520px;
+    margin-bottom: 48px;
+  }
+  .hero-actions { display: flex; gap: 16px; align-items: center; }
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: background 0.2s;
+  }
+  .btn-primary:hover { background: #1e3d29; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--rule);
+    padding: 13px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: border-color 0.2s;
+  }
+  .btn-ghost:hover { border-color: var(--ink); }
+
+  /* HERO CARD */
+  .hero-card {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 36px;
+    position: sticky;
+    top: 80px;
+  }
+  .hero-card-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #6a6660;
+    margin-bottom: 24px;
+  }
+  .metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 16px 0;
+    border-bottom: 1px solid #2a2a28;
+  }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-label { font-size: 12px; color: #9a9690; }
+  .metric-value { font-family: var(--serif); font-size: 26px; color: var(--paper); }
+  .metric-unit { font-family: var(--mono); font-size: 11px; color: #a8d4b5; margin-left: 4px; }
+
+  /* ── SECTION BASE ── */
+  section { padding: 80px 60px; max-width: 1200px; margin: 0 auto; }
+  .section-rule { border: none; border-top: 1px solid var(--rule); margin: 0 60px; }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  h2 {
+    font-family: var(--serif);
+    font-size: clamp(32px, 3.5vw, 48px);
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+  }
+  .lead {
+    font-size: 17px;
+    line-height: 1.7;
+    color: #3a3835;
+    max-width: 680px;
+    margin-bottom: 56px;
+  }
+
+  /* ── PROBLEM ── */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin-top: 48px;
+  }
+  .problem-cell {
+    background: var(--paper);
+    padding: 36px 32px;
+  }
+  .problem-cell-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .problem-cell h3 {
+    font-family: var(--serif);
+    font-size: 22px;
+    margin-bottom: 12px;
+    line-height: 1.25;
+  }
+  .problem-cell p {
+    font-size: 14px;
+    line-height: 1.65;
+    color: #5a5855;
+  }
+
+  /* ── MARKET ── */
+  .market-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--rule);
+    margin-top: 48px;
+  }
+  .market-cell {
+    padding: 36px 28px;
+    border-right: 1px solid var(--rule);
+  }
+  .market-cell:last-child { border-right: none; }
+  .market-num {
+    font-family: var(--serif);
+    font-size: 42px;
+    color: var(--data);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .market-suffix { font-size: 20px; color: var(--muted); }
+  .market-label {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-top: 8px;
+  }
+  .market-trend {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    margin-top: 12px;
+  }
+
+  /* ── PRODUCT ── */
+  .feature-list { margin-top: 48px; }
+  .feature-item {
+    display: grid;
+    grid-template-columns: 56px 1fr 220px;
+    gap: 0 40px;
+    align-items: start;
+    padding: 40px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .feature-item:first-child { border-top: 1px solid var(--rule); }
+  .feature-index {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    padding-top: 4px;
+  }
+  .feature-body h3 {
+    font-family: var(--serif);
+    font-size: 22px;
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+  .feature-body p { font-size: 14px; line-height: 1.65; color: #4a4845; max-width: 480px; }
+  .feature-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 5px 10px;
+    margin-top: 4px;
+    text-transform: uppercase;
+  }
+  .tag-security { background: var(--warn-light); color: var(--warn); }
+  .tag-core { background: var(--accent-light); color: var(--accent); }
+  .tag-ai { background: #e8eef5; color: var(--data); }
+  .feature-ac {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--muted);
+    padding-top: 4px;
+    border-left: 2px solid var(--rule);
+    padding-left: 16px;
+  }
+  .feature-ac strong { color: var(--ink); display: block; margin-bottom: 4px; font-size: 11px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* ── TECH ── */
+  .tech-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 48px;
+    font-size: 14px;
+  }
+  .tech-table th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 12px 20px;
+    background: #f0ede8;
+    border-bottom: 1px solid var(--rule);
+  }
+  .tech-table td {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  .tech-table tr:last-child td { border-bottom: none; }
+  .tech-table td:first-child { font-weight: 500; width: 200px; }
+  .tech-table td:nth-child(2) { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+  .tech-table td:nth-child(3) { color: #2a2a28; }
+  .chosen {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent);
+    background: var(--accent-light);
+    padding: 2px 8px;
+    display: inline-block;
+    margin-right: 6px;
+  }
+
+  /* ── ROADMAP ── */
+  .roadmap { margin-top: 48px; }
+  .milestone {
+    display: grid;
+    grid-template-columns: 120px 28px 1fr;
+    gap: 0 24px;
+    align-items: start;
+    margin-bottom: 0;
+  }
+  .milestone-time {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    padding-top: 3px;
+    letter-spacing: 0.04em;
+  }
+  .milestone-track {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .milestone-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--ink);
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .milestone-dot.accent { background: var(--accent); }
+  .milestone-line {
+    width: 1px;
+    flex: 1;
+    background: var(--rule);
+    min-height: 48px;
+  }
+  .milestone-content { padding-bottom: 48px; }
+  .milestone-content h4 {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .milestone-content p { font-size: 13px; color: var(--muted); }
+
+  /* ── MOAT / DIFFERENTIATORS ── */
+  .moat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin-top: 48px;
+  }
+  .moat-cell {
+    background: var(--paper);
+    padding: 40px 36px;
+  }
+  .moat-icon {
+    font-family: var(--mono);
+    font-size: 20px;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: block;
+  }
+  .moat-cell h3 { font-size: 18px; font-weight: 600; margin-bottom: 10px; }
+  .moat-cell p { font-size: 14px; line-height: 1.65; color: #5a5855; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 48px 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  footer strong { color: var(--ink); }
+
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    nav .nav-links { display: none; }
+    .hero { grid-template-columns: 1fr; padding: 60px 24px 48px; gap: 48px; }
+    .hero-card { position: static; }
+    section { padding: 60px 24px; }
+    .section-rule { margin: 0 24px; }
+    .problem-grid { grid-template-columns: 1fr; }
+    .market-strip { grid-template-columns: 1fr 1fr; }
+    .market-cell:nth-child(2) { border-right: none; }
+    .feature-item { grid-template-columns: 40px 1fr; }
+    .feature-ac { display: none; }
+    .moat-grid { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 12px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-inner">
+    <span>SERIES SEED · PRIVATE PLACEMENT</span>
+    <strong>MdownManager</strong>
+    <span>LOCAL-FIRST · AGENT-NATIVE · SECURITY-LAYER FOR MARKDOWN</span>
+    <strong>TEAM: TEAMBOTICS</strong>
+    <span>TORONTO · 2026</span>
+    <strong>TAM: $4.2B DEVELOPER TOOLING</strong>
+    <span>16-WEEK MVP ROADMAP</span>
+    <strong>OPEN-CORE MONETISATION MODEL</strong>
+    <span>SERIES SEED · PRIVATE PLACEMENT</span>
+    <strong>MdownManager</strong>
+    <span>LOCAL-FIRST · AGENT-NATIVE · SECURITY-LAYER FOR MARKDOWN</span>
+    <strong>TEAM: TEAMBOTICS</strong>
+    <span>TORONTO · 2026</span>
+    <strong>TAM: $4.2B DEVELOPER TOOLING</strong>
+    <span>16-WEEK MVP ROADMAP</span>
+    <strong>OPEN-CORE MONETISATION MODEL</strong>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo"><em>M↓</em> MdownManager</div>
+  <ul class="nav-links">
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#market">Market</a></li>
+    <li><a href="#product">Product</a></li>
+    <li><a href="#tech">Tech</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+  </ul>
+  <button class="nav-cta">Request Deck →</button>
+</nav>
+
+<!-- HERO -->
+<div style="max-width:1200px; margin:0 auto;">
+  <section class="hero" style="padding-top:100px;">
+    <div>
+      <p class="hero-eyebrow">Seed Round · Teambotics Inc. · Toronto</p>
+      <h1>The <em>security layer</em> Markdown files have always needed</h1>
+      <p class="hero-sub">As AI agents read your team's .md files, those files become a prompt-injection attack surface. MdownManager is the first platform that manages, audits, and serves Markdown as a first-class knowledge base — with a built-in security scanner before any agent touches the content.</p>
+      <div class="hero-actions">
+        <button class="btn-primary">View Full Deck</button>
+        <button class="btn-ghost">Schedule Meeting</button>
+      </div>
+    </div>
+    <div class="hero-card">
+      <div class="hero-card-label">// deal snapshot</div>
+      <div class="metric-row">
+        <span class="metric-label">Stage</span>
+        <span class="metric-value">Seed<span class="metric-unit">pre-A</span></span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">MVP Timeline</span>
+        <span class="metric-value">16<span class="metric-unit">weeks</span></span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Target Market</span>
+        <span class="metric-value">$4.2<span class="metric-unit">B TAM</span></span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Model</span>
+        <span class="metric-value" style="font-size:18px;">Open-core</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Scanner Precision</span>
+        <span class="metric-value">≥90<span class="metric-unit">%</span></span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Framework</span>
+        <span class="metric-value" style="font-size:16px; font-family: 'DM Mono'">Tauri 2.x</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<hr class="section-rule">
+
+<!-- PROBLEM -->
+<section id="problem">
+  <div class="section-label">// 01 · the problem</div>
+  <h2>Markdown became the AI agent's<br>native file format. Nobody noticed.</h2>
+  <p class="lead">Agent configuration, RAG corpora, system prompts, runbooks — all authored and consumed as .md. Yet no purpose-built home exists. And no one is screening what the agents read.</p>
+
+  <div class="problem-grid">
+    <div class="problem-cell">
+      <div class="problem-cell-num">01</div>
+      <h3>Fragmented storage</h3>
+      <p>Markdown lives scattered across repos, Notion, cloud drives, and local folders. None of these index or serve .md specifically for agent retrieval.</p>
+    </div>
+    <div class="problem-cell">
+      <div class="problem-cell-num">02</div>
+      <h3>Zero security layer</h3>
+      <p>A .md file pulled from a repo or shared by a teammate can carry hidden instructions that hijack a downstream agent. Today this is screened by nobody — and agents now have tool access.</p>
+    </div>
+    <div class="problem-cell">
+      <div class="problem-cell-num">03</div>
+      <h3>Wrong-shaped incumbents</h3>
+      <p>Obsidian is editor-first. Notion locks content in a proprietary store. OneDrive syncs bytes, not Markdown structure. None are built for agent consumption or injection screening.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- MARKET -->
+<section id="market">
+  <div class="section-label">// 02 · market opportunity</div>
+  <h2>Riding two converging waves</h2>
+  <p class="lead">Developer tooling is growing. Agentic AI is exploding. The intersection — secure, agent-native knowledge management — has no clear incumbent.</p>
+
+  <div class="market-strip">
+    <div class="market-cell">
+      <div class="market-num">$4.2<span class="market-suffix">B</span></div>
+      <div class="market-label">Developer tooling TAM (2025 est.)</div>
+      <div class="market-trend">↑ 18% YoY</div>
+    </div>
+    <div class="market-cell">
+      <div class="market-num">62<span class="market-suffix">%</span></div>
+      <div class="market-label">Developers now using AI coding assistants weekly</div>
+      <div class="market-trend">↑ from 37% in 2023</div>
+    </div>
+    <div class="market-cell">
+      <div class="market-num">0</div>
+      <div class="market-label">Direct competitors with security-layer + local-first Markdown vault</div>
+      <div class="market-trend">Whitespace confirmed</div>
+    </div>
+    <div class="market-cell">
+      <div class="market-num">93<span class="market-suffix">%</span></div>
+      <div class="market-label">Tauri 2.x bundle-size reduction vs Electron — hardware co-existence with local LLMs</div>
+      <div class="market-trend">Benchmark verified 2026</div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- PRODUCT -->
+<section id="product">
+  <div class="section-label">// 03 · product</div>
+  <h2>Five capabilities. One coherent platform.</h2>
+  <p class="lead">Each feature is independently valuable; together they form a complete security and management pipeline for the Markdown knowledge layer that agents consume.</p>
+
+  <div class="feature-list">
+    <div class="feature-item">
+      <div class="feature-index">F01</div>
+      <div class="feature-body">
+        <h3>Core Vault</h3>
+        <p>A local-first, personally hosted .md file server. Files stay on-disk as plaintext. SQLite index + LanceDB vectors serve them to agents in under 2 seconds. Optional remote sync via PocketBase — no third-party cloud required.</p>
+        <span class="feature-tag tag-core">Core Infrastructure</span>
+      </div>
+      <div class="feature-ac">
+        <strong>Acceptance Criteria</strong>
+        Store, retrieve &amp; serve an .md file to an AI agent in &lt;2s from local or remote vault.
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-index">F02</div>
+      <div class="feature-body">
+        <h3>Prompt Injection Scanner</h3>
+        <p>Three-layer detection: static pattern matching → LLM semantic analysis → context reasoning. Flags adversarial instructions, role confusion, tool injection, exfiltration attempts, and obfuscation. Line-level highlights with single-click navigation. Fully explainable verdicts.</p>
+        <span class="feature-tag tag-security">Priority · Security</span>
+      </div>
+      <div class="feature-ac">
+        <strong>Acceptance Criteria</strong>
+        ≥90% precision on defined test corpus. Each flag navigable in one UI interaction.
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-index">F03</div>
+      <div class="feature-body">
+        <h3>AI Summary Generator</h3>
+        <p>Structured executive summaries on demand: TL;DR, key bullets, decisions. Routes to local LLM by default; cloud LLM opt-in per feature with explicit disclosure. Sub-10-second latency target.</p>
+        <span class="feature-tag tag-ai">AI · Configurable Routing</span>
+      </div>
+      <div class="feature-ac">
+        <strong>Acceptance Criteria</strong>
+        Summary in &lt;10s. ≥80% of beta testers rate it useful.
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-index">F04</div>
+      <div class="feature-body">
+        <h3>Structure Explorer</h3>
+        <p>Tabulated view of every structural element — headings, code blocks, links, callouts, tasks. Sortable, filterable, exportable. Virtualised rendering handles 10,000+ line documents. Click-to-jump to source line.</p>
+        <span class="feature-tag tag-core">UX · Performance</span>
+      </div>
+      <div class="feature-ac">
+        <strong>Acceptance Criteria</strong>
+        Full structure interactive in &lt;1.5s for files up to 500KB.
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-index">F05</div>
+      <div class="feature-body">
+        <h3>Categorisation Engine</h3>
+        <p>AI-first grouping via embeddings. Full manual drag-and-drop override that persists. One-click re-sort that respects or optionally resets manual changes. Manual labels always win over AI in conflict resolution.</p>
+        <span class="feature-tag tag-ai">AI + Manual Override</span>
+      </div>
+      <div class="feature-ac">
+        <strong>Acceptance Criteria</strong>
+        ≥75% user agreement on initial AI grouping. Re-sort in &lt;5s.
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- TECH -->
+<section id="tech">
+  <div class="section-label">// 04 · technical strategy</div>
+  <h2>Stack chosen for sovereignty<br>and consumer hardware</h2>
+  <p class="lead">Every decision is optimised for one constraint: the app must coexist with a local LLM on the same machine, with zero mandatory cloud dependency.</p>
+
+  <table class="tech-table">
+    <thead>
+      <tr>
+        <th>Decision</th>
+        <th>Options Evaluated</th>
+        <th>Recommendation + Rationale</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Desktop framework</td>
+        <td>Electron, Flutter Desktop</td>
+        <td><span class="chosen">Tauri 2.x</span> 12MB bundle vs 180MB Electron. ~85MB idle RAM vs ~450MB. 93% size reduction confirmed in 2026 benchmarks. Electron's Chromium runtime directly competes with the local LLM for memory.</td>
+      </tr>
+      <tr>
+        <td>LLM abstraction</td>
+        <td>LangChain, custom</td>
+        <td><span class="chosen">LlamaIndex + thin custom router</span> LlamaIndex owns indexing/RAG. Custom router handles per-feature local/cloud routing — keeps the security-critical injection path transparent and auditable. LangChain rejected: too abstracted to audit.</td>
+      </tr>
+      <tr>
+        <td>Local LLM runtime</td>
+        <td>LM Studio, llama.cpp</td>
+        <td><span class="chosen">Ollama (default) + llama.cpp (embeddable)</span> Ollama: simplest install, clean HTTP API, broad model library. llama.cpp: bundled for a true offline mode requiring zero external install.</td>
+      </tr>
+      <tr>
+        <td>UI component library</td>
+        <td>Radix, Ant Design</td>
+        <td><span class="chosen">shadcn/ui on Radix</span> Copy-in components, no version lock, fully accessible primitives. TanStack Table for Structure Explorer virtualisation. Ant Design rejected: too opinionated visually.</td>
+      </tr>
+      <tr>
+        <td>File storage / sync</td>
+        <td>PocketBase, Supabase local</td>
+        <td><span class="chosen">SQLite + filesystem (v1) → PocketBase (team)</span> Files-on-disk stay authoritative. SQLite index is disposable and rebuildable. PocketBase (single Go binary) is the clean self-hosted path for remote/team vaults.</td>
+      </tr>
+      <tr>
+        <td>Vector search</td>
+        <td>ChromaDB, Weaviate</td>
+        <td><span class="chosen">LanceDB</span> Embedded, serverless, on-disk, Rust-native. Native LlamaIndex integration. Sub-20ms query times on 1M vectors. No separate server process. $30M Series A (June 2025) signals production maturity.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<hr class="section-rule">
+
+<!-- MOAT -->
+<section>
+  <div class="section-label">// 05 · defensibility</div>
+  <h2>Why this is hard to replicate</h2>
+  <div class="moat-grid">
+    <div class="moat-cell">
+      <span class="moat-icon">[S]</span>
+      <h3>Security as the wedge</h3>
+      <p>The prompt injection scanner is the category-defining feature. Building a high-precision, three-layer, explainable detection engine takes real investment. First-mover advantage accumulates in the test corpus and the pattern library.</p>
+    </div>
+    <div class="moat-cell">
+      <span class="moat-icon">[P]</span>
+      <h3>Privacy as a sales motion</h3>
+      <p>Local-first with no mandatory cloud is a genuine differentiator in regulated industries and privacy-conscious teams. Network effects don't apply — but trust does, and trust compounds with a clean track record.</p>
+    </div>
+    <div class="moat-cell">
+      <span class="moat-icon">[A]</span>
+      <h3>Agent-native architecture</h3>
+      <p>The local HTTP/IPC serving layer and the LanceDB vector index are purpose-built for agent consumption. Generic file managers retrofit this; MdownManager ships it as a first principle.</p>
+    </div>
+    <div class="moat-cell">
+      <span class="moat-icon">[O]</span>
+      <h3>Open-core flywheel</h3>
+      <p>An open-source core with a documented, auditable security model builds community trust that is especially potent for a security product. The pattern library grows with contributions; the premium tier monetises hosted sync and cloud routing.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="section-rule">
+
+<!-- ROADMAP -->
+<section id="roadmap">
+  <div class="section-label">// 06 · roadmap</div>
+  <h2>16 weeks to beta</h2>
+  <p class="lead">Six milestones with clearly-scoped deliverables and named owner roles. Each core feature produces a proof-of-concept before the milestone closes.</p>
+
+  <div class="roadmap">
+    <div class="milestone">
+      <div class="milestone-time">Wk 1–2</div>
+      <div class="milestone-track"><div class="milestone-dot accent"></div><div class="milestone-line"></div></div>
+      <div class="milestone-content"><h4>M1 — Discovery & Architecture</h4><p>Finalised tech stack · System design doc · Owner: Tech Lead</p></div>
+    </div>
+    <div class="milestone">
+      <div class="milestone-time">Wk 3–5</div>
+      <div class="milestone-track"><div class="milestone-dot"></div><div class="milestone-line"></div></div>
+      <div class="milestone-content"><h4>M2 — Core Vault</h4><p>Working file manager with LLM indexing · Owner: Engineering</p></div>
+    </div>
+    <div class="milestone">
+      <div class="milestone-time">Wk 6–9</div>
+      <div class="milestone-track"><div class="milestone-dot"></div><div class="milestone-line"></div></div>
+      <div class="milestone-content"><h4>M3 — Prompt Injection Scanner</h4><p>MVP scanner with UI flag navigation · Owner: AI/Security Engineer</p></div>
+    </div>
+    <div class="milestone">
+      <div class="milestone-time">Wk 10–12</div>
+      <div class="milestone-track"><div class="milestone-dot"></div><div class="milestone-line"></div></div>
+      <div class="milestone-content"><h4>M4 — Summary + Explorer</h4><p>Summary generator + tabulated UI · Owner: Full-stack Engineer</p></div>
+    </div>
+    <div class="milestone">
+      <div class="milestone-time">Wk 13–15</div>
+      <div class="milestone-track"><div class="milestone-dot"></div><div class="milestone-line"></div></div>
+      <div class="milestone-content"><h4>M5 — Categorisation Engine</h4><p>AI grouping + manual override + re-sort · Owner: ML Engineer</p></div>
+    </div>
+    <div class="milestone">
+      <div class="milestone-time">Wk 16</div>
+      <div class="milestone-track"><div class="milestone-dot accent"></div><div class="milestone-line" style="visibility:hidden;"></div></div>
+      <div class="milestone-content"><h4>M6 — Beta & Whitepaper</h4><p>Internal beta · Whitepaper published · Owner: Product + Engineering</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div><strong>MdownManager</strong> · Teambotics Inc. · Toronto, Canada · 2026</div>
+  <div>Confidential — For qualified investors only</div>
+  <div>contact@teambotics.app</div>
+</footer>
+
+</body>
+</html>

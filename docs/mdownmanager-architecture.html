@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MdownManager — System Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e1016;
+    --surface: #141820;
+    --surface2: #1c2230;
+    --border: #252d3d;
+    --border2: #1e2838;
+    --green: #4ec994;
+    --green-dim: #2a6b50;
+    --green-glow: rgba(78,201,148,0.1);
+    --blue: #4d9fd6;
+    --blue-dim: #2a5070;
+    --blue-glow: rgba(77,159,214,0.1);
+    --purple: #9b72d4;
+    --purple-dim: #4a3070;
+    --purple-glow: rgba(155,114,212,0.1);
+    --amber: #e0a050;
+    --amber-dim: #6a4820;
+    --red: #e06060;
+    --red-dim: #6a2020;
+    --text: #d0d8e8;
+    --text-muted: #6878a0;
+    --text-dim: #3a4460;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    padding: 40px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 48px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .header-title {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .header-title span { color: var(--green); }
+  .header-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+  }
+
+  /* ── LEGEND ── */
+  .legend {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ── DIAGRAM CANVAS ── */
+  .canvas {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3px;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  /* ── LAYER ── */
+  .layer {
+    display: grid;
+    gap: 3px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  .layer-label {
+    position: absolute;
+    top: -1px;
+    left: 20px;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    font-weight: 600;
+  }
+
+  .layer-ui { background: rgba(155,114,212,0.04); border-color: var(--purple-dim); }
+  .layer-ui .layer-label { background: var(--purple-dim); color: var(--purple); }
+
+  .layer-core { background: rgba(78,201,148,0.04); border-color: var(--green-dim); }
+  .layer-core .layer-label { background: var(--green-dim); color: var(--green); }
+
+  .layer-ai { background: rgba(77,159,214,0.04); border-color: var(--blue-dim); }
+  .layer-ai .layer-label { background: var(--blue-dim); color: var(--blue); }
+
+  .layer-data { background: rgba(224,160,80,0.04); border-color: var(--amber-dim); }
+  .layer-data .layer-label { background: var(--amber-dim); color: var(--amber); }
+
+  .layer-external { background: rgba(224,96,96,0.04); border-color: var(--red-dim); }
+  .layer-external .layer-label { background: var(--red-dim); color: var(--red); }
+
+  /* ── ROW ── */
+  .row {
+    display: flex;
+    gap: 3px;
+    align-items: stretch;
+    margin-top: 20px;
+  }
+
+  /* ── NODE ── */
+  .node {
+    flex: 1;
+    padding: 16px 18px;
+    border: 1px solid;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    position: relative;
+    transition: background 0.15s;
+  }
+  .node:hover { filter: brightness(1.08); }
+
+  .node-green { border-color: var(--green-dim); background: var(--green-glow); }
+  .node-blue { border-color: var(--blue-dim); background: var(--blue-glow); }
+  .node-purple { border-color: var(--purple-dim); background: var(--purple-glow); }
+  .node-amber { border-color: var(--amber-dim); background: rgba(224,160,80,0.07); }
+  .node-red { border-color: var(--red-dim); background: rgba(224,96,96,0.07); }
+  .node-dim { border-color: var(--border); background: var(--surface); }
+
+  .node-tag {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .tag-green { color: var(--green); }
+  .tag-blue { color: var(--blue); }
+  .tag-purple { color: var(--purple); }
+  .tag-amber { color: var(--amber); }
+  .tag-red { color: var(--red); }
+  .tag-dim { color: var(--text-dim); }
+
+  .node-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .node-tech {
+    font-size: 10px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin-top: 2px;
+  }
+  .node-detail {
+    font-size: 10px;
+    color: var(--text-dim);
+    line-height: 1.4;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding-top: 6px;
+    margin-top: 2px;
+  }
+
+  .node-wide { flex: 2; }
+  .node-narrow { flex: 0.7; }
+
+  /* ── ARROW ROWS ── */
+  .arrows {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    padding: 8px 20px;
+    position: relative;
+  }
+  .arrow-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+  }
+  .arrow-line {
+    font-family: var(--mono);
+    font-size: 18px;
+    color: var(--text-dim);
+    line-height: 1;
+  }
+  .arrow-label {
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .arrow-label.green { color: var(--green-dim); }
+  .arrow-label.blue { color: var(--blue-dim); }
+  .arrow-label.amber { color: var(--amber-dim); }
+
+  /* ── HORIZONTAL FLOW ROW ── */
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    overflow-x: auto;
+    margin-top: 3px;
+  }
+  .flow-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    min-width: 110px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+  .flow-node-num {
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+  .flow-node-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .flow-node-sub {
+    font-size: 9px;
+    color: var(--text-muted);
+  }
+  .flow-arrow {
+    font-size: 16px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .flow-node.flow-green { border-color: var(--green-dim); background: var(--green-glow); }
+  .flow-node.flow-blue { border-color: var(--blue-dim); background: var(--blue-glow); }
+  .flow-node.flow-amber { border-color: var(--amber-dim); background: rgba(224,160,80,0.07); }
+  .flow-node.flow-red { border-color: var(--red-dim); background: rgba(224,96,96,0.07); }
+  .flow-node.flow-purple { border-color: var(--purple-dim); background: var(--purple-glow); }
+
+  /* ── SECTION DIVIDERS ── */
+  .section-gap { height: 24px; }
+  .section-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 0 0 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+
+  /* ── ANNOTATIONS ── */
+  .annotations {
+    margin-top: 32px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 3px;
+  }
+  .ann-card {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 20px;
+  }
+  .ann-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .ann-item {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .ann-key {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    min-width: 70px;
+    flex-shrink: 0;
+  }
+  .ann-val {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+  .ann-val strong { color: var(--text); font-weight: 500; }
+
+  @media (max-width: 900px) {
+    body { padding: 20px; }
+    .annotations { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 600px) {
+    body { padding: 12px; }
+    .row { flex-direction: column; }
+    .annotations { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title"><span>M↓</span> MdownManager — System Architecture</div>
+  <div class="header-meta">v0.1 · DRAFT · Teambotics Inc. · 2026</div>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--purple);"></div>UI / Shell Layer</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--green);"></div>Core Services</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--blue);"></div>AI / Inference</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--amber);"></div>Data / Storage</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--red);"></div>External / Optional</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--text-dim);"></div>Internal / OS</div>
+</div>
+
+<!-- ────────────────────────────────────────────── -->
+<!-- LAYER 1: UI -->
+<div class="canvas">
+
+  <div class="layer layer-ui">
+    <div class="layer-label">Layer 1 — UI Shell · Tauri 2.x + React + shadcn/ui</div>
+    <div class="row" style="margin-top:28px;">
+
+      <div class="node node-purple">
+        <div class="node-tag tag-purple">F01</div>
+        <div class="node-name">Core Vault UI</div>
+        <div class="node-tech">File browser · Risk badges<br>Version history panel</div>
+        <div class="node-detail">Drag-drop ingest · Folder watch config · Agent API status</div>
+      </div>
+
+      <div class="node node-purple">
+        <div class="node-tag tag-purple">F02 · Priority</div>
+        <div class="node-name">Scanner UI</div>
+        <div class="node-tech">Inline line highlights<br>Summary panel · 1-click nav</div>
+        <div class="node-detail">Flag type · Severity badge · Layer chain · Explainability text</div>
+      </div>
+
+      <div class="node node-purple">
+        <div class="node-tag tag-purple">F03</div>
+        <div class="node-name">Summary UI</div>
+        <div class="node-tech">TL;DR + bullets + decisions<br>Routing badge per request</div>
+        <div class="node-detail">Length selector (S/M/L) · Model/provider disclosure</div>
+      </div>
+
+      <div class="node node-purple">
+        <div class="node-tag tag-purple">F04</div>
+        <div class="node-name">Structure Explorer</div>
+        <div class="node-tech">TanStack Table + virtualisation<br>Sort · Filter · Export CSV/JSON</div>
+        <div class="node-detail">Click-to-line · Handles 10k+ line docs · 500KB &lt;1.5s</div>
+      </div>
+
+      <div class="node node-purple">
+        <div class="node-tag tag-purple">F05</div>
+        <div class="node-name">Categorisation UI</div>
+        <div class="node-tech">Drag-and-drop canvas<br>Manual pin indicator</div>
+        <div class="node-detail">AI-suggested · Manual override · One-click re-sort</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ARROWS: UI → Core -->
+  <div class="arrows">
+    <div class="arrow-group"><div class="arrow-line">↕</div><div class="arrow-label green">IPC / local HTTP</div></div>
+    <div class="arrow-group"><div class="arrow-line">↕</div><div class="arrow-label green">IPC / local HTTP</div></div>
+    <div class="arrow-group"><div class="arrow-line">↕</div><div class="arrow-label green">IPC / local HTTP</div></div>
+    <div class="arrow-group"><div class="arrow-line">↕</div><div class="arrow-label green">IPC / local HTTP</div></div>
+    <div class="arrow-group"><div class="arrow-line">↕</div><div class="arrow-label green">IPC / local HTTP</div></div>
+  </div>
+
+  <!-- ────────────────────────────────────────────── -->
+  <!-- LAYER 2: CORE SERVICES -->
+  <div class="layer layer-core">
+    <div class="layer-label">Layer 2 — Core Services · Rust (Tauri backend) + Python workers</div>
+    <div class="row" style="margin-top:28px;">
+
+      <div class="node node-green node-wide">
+        <div class="node-tag tag-green">Vault Manager</div>
+        <div class="node-name">File Server + Index Engine</div>
+        <div class="node-tech">Filesystem watcher (notify-rs) · Glob include/exclude<br>Content-hash versioning · Metadata extractor</div>
+        <div class="node-detail">Serves .md to agents via local HTTP API &lt;2s · Triggers indexing pipeline on change</div>
+      </div>
+
+      <div class="node node-green node-wide">
+        <div class="node-tag tag-green">Injection Scanner</div>
+        <div class="node-name">3-Layer Detection Engine</div>
+        <div class="node-tech">Layer 1: Regex + heuristics (Rust, offline)<br>Layer 2: LLM semantic (local model via Ollama)<br>Layer 3: Context reasoning (LLM + file metadata)</div>
+        <div class="node-detail">Severity: Low / Med / High / Critical · Conflict policy: highest wins, context may downgrade with justification · Auditable pattern library</div>
+      </div>
+
+      <div class="node node-green">
+        <div class="node-tag tag-green">LLM Router</div>
+        <div class="node-name">Routing Controller</div>
+        <div class="node-tech">Per-feature config<br>Local-first default<br>Cloud opt-in with disclosure</div>
+        <div class="node-detail">Thin custom layer — keeps injection path auditable; not LangChain</div>
+      </div>
+
+      <div class="node node-green">
+        <div class="node-tag tag-green">Markdown Parser</div>
+        <div class="node-name">Structure Extractor</div>
+        <div class="node-tech">pulldown-cmark (Rust)<br>YAML frontmatter parser<br>Worker thread — non-blocking</div>
+        <div class="node-detail">Extracts: headings, code blocks, links, callouts, tasks, images, metadata</div>
+      </div>
+
+    </div>
+
+    <div class="row">
+      <div class="node node-green">
+        <div class="node-tag tag-green">Indexing Pipeline</div>
+        <div class="node-name">LlamaIndex Orchestrator</div>
+        <div class="node-tech">Document chunking + embedding<br>LlamaIndex → LanceDB write<br>SQLite FTS update</div>
+        <div class="node-detail">Runs async on file change · nomic-embed-text via Ollama · Rebuildable from files</div>
+      </div>
+
+      <div class="node node-green">
+        <div class="node-tag tag-green">Categoriser</div>
+        <div class="node-name">Embedding Cluster Engine</div>
+        <div class="node-tech">KMeans / HDBSCAN on embeddings<br>LLM label generation<br>Pinned-file conflict resolution</div>
+        <div class="node-detail">Manual = pinned, survives re-sort · AI re-sort only touches unpinned · &lt;5s re-sort target</div>
+      </div>
+
+      <div class="node node-green">
+        <div class="node-tag tag-green">Summary Engine</div>
+        <div class="node-name">Structured Summary Generator</div>
+        <div class="node-tech">Prompt template: TL;DR + bullets<br>Token-budget-aware chunking<br>Route decision pre-flight</div>
+        <div class="node-detail">&lt;10s target · Discloses route before cloud send · Caches by content hash</div>
+      </div>
+
+      <div class="node node-green">
+        <div class="node-tag tag-green">Agent API</div>
+        <div class="node-name">Local HTTP Server</div>
+        <div class="node-tech">GET /files · GET /chunks<br>POST /query (semantic)<br>OpenAI-compatible endpoint</div>
+        <div class="node-detail">Auth: local token · Rate limit configurable · Serves screened content only</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARROWS: Core → AI + Data -->
+  <div class="arrows">
+    <div class="arrow-group"><div class="arrow-line">↙</div><div class="arrow-label blue">inference requests</div></div>
+    <div class="arrow-group"><div class="arrow-line">↓</div><div class="arrow-label blue">embeddings / completions</div></div>
+    <div class="arrow-group"><div class="arrow-line">↓</div><div class="arrow-label amber">read / write</div></div>
+    <div class="arrow-group"><div class="arrow-line">↘</div><div class="arrow-label amber">file ops</div></div>
+  </div>
+
+  <!-- ────────────────────────────────────────────── -->
+  <!-- LAYER 3: AI + DATA side by side -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px;">
+
+    <!-- AI LAYER -->
+    <div class="layer layer-ai">
+      <div class="layer-label">Layer 3a — AI / Inference · Local runtime</div>
+      <div class="row" style="margin-top:28px;">
+
+        <div class="node node-blue">
+          <div class="node-tag tag-blue">Default</div>
+          <div class="node-name">Ollama</div>
+          <div class="node-tech">REST API · localhost:11434<br>Model management UI<br>nomic-embed-text · mistral · llama3</div>
+          <div class="node-detail">Simplest install path. Cross-platform. Broad model library.</div>
+        </div>
+
+        <div class="node node-blue">
+          <div class="node-tag tag-blue">Offline / Bundled</div>
+          <div class="node-name">llama.cpp</div>
+          <div class="node-tech">Embeddable · Zero-dependency<br>GGUF models<br>Bundled with app binary</div>
+          <div class="node-detail">True offline mode — no separate install. Fallback when Ollama not running.</div>
+        </div>
+
+        <div class="node node-dim">
+          <div class="node-tag tag-dim">Optional</div>
+          <div class="node-name">LM Studio</div>
+          <div class="node-tech">OpenAI-compatible endpoint<br>User-managed</div>
+          <div class="node-detail">Supported via OpenAI-compat shim if user already running it.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DATA LAYER -->
+    <div class="layer layer-data">
+      <div class="layer-label">Layer 3b — Data / Storage · Local-first</div>
+      <div class="row" style="margin-top:28px;">
+
+        <div class="node node-amber">
+          <div class="node-tag tag-amber">Source of Truth</div>
+          <div class="node-name">Filesystem (.md files)</div>
+          <div class="node-tech">Plaintext on user disk<br>git-compatible<br>notify-rs watcher</div>
+          <div class="node-detail">Authoritative. Index is derivative + disposable. Rebuildable from files.</div>
+        </div>
+
+        <div class="node node-amber">
+          <div class="node-tag tag-amber">Index + State</div>
+          <div class="node-name">SQLite</div>
+          <div class="node-tech">Metadata · FTS5 search<br>Categories · Scan results<br>Version snapshots (hash-diff)</div>
+          <div class="node-detail">Embedded. Single file. Zero-config. Disposable if corrupted.</div>
+        </div>
+
+        <div class="node node-amber">
+          <div class="node-tag tag-amber">Vector Search</div>
+          <div class="node-name">LanceDB</div>
+          <div class="node-tech">Embedded · Apache Arrow<br>On-disk · Rust-native<br>LlamaIndex native integration</div>
+          <div class="node-detail">&lt;20ms queries on 1M vectors. No separate server. $30M Series A (Jun 2025).</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ARROWS: External / Optional -->
+  <div class="arrows" style="padding: 8px 20px;">
+    <div class="arrow-group" style="flex:3;"><div class="arrow-line" style="font-size:14px;">↑ opt-in only · explicit egress disclosure · per-feature user config ↑</div><div class="arrow-label" style="color:var(--red-dim); letter-spacing:0.12em;">CLOUD / EXTERNAL — NEVER DEFAULT</div></div>
+  </div>
+
+  <!-- ────────────────────────────────────────────── -->
+  <!-- LAYER 4: EXTERNAL (OPTIONAL) -->
+  <div class="layer layer-external">
+    <div class="layer-label">Layer 4 — External / Optional · User opt-in · Explicit disclosure required before egress</div>
+    <div class="row" style="margin-top:28px;">
+
+      <div class="node node-red">
+        <div class="node-tag tag-red">Cloud LLM (F03 only by default)</div>
+        <div class="node-name">OpenAI / Anthropic / Gemini</div>
+        <div class="node-tech">BYOK (user's API key)<br>Per-feature routing config<br>Disclosure UI before send</div>
+        <div class="node-detail">Never used by Scanner (F02). Summary and Categorise may route here when user opts in.</div>
+      </div>
+
+      <div class="node node-red">
+        <div class="node-tag tag-red">Team Sync · Pro+</div>
+        <div class="node-name">PocketBase (self-hosted)</div>
+        <div class="node-tech">Single Go binary<br>Embedded SQLite<br>REST + realtime WS</div>
+        <div class="node-detail">No third-party cloud. User runs their own instance. Device-to-device sync. Future: team vaults.</div>
+      </div>
+
+      <div class="node node-dim">
+        <div class="node-tag tag-dim">Future · Team tier</div>
+        <div class="node-name">Identity / SSO</div>
+        <div class="node-tech">OIDC / SAML integration<br>Team seat management</div>
+        <div class="node-detail">Out of scope for v1. Design hooks present in data model.</div>
+      </div>
+
+      <div class="node node-dim">
+        <div class="node-tag tag-dim">Optional telemetry</div>
+        <div class="node-name">Diagnostics (opt-in)</div>
+        <div class="node-tech">Crash reports only<br>No usage data by default<br>Sentry (opt-in)</div>
+        <div class="node-detail">Disabled by default. Enabled explicitly by user in settings.</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ── INJECTION SCANNER FLOW ── -->
+<div class="section-gap"></div>
+<div class="section-title">// F02 · Prompt Injection Scanner — Detection Flow</div>
+<div class="flow-row">
+  <div class="flow-node flow-amber">
+    <div class="flow-node-num">INPUT</div>
+    <div class="flow-node-name">Drop .md file(s)</div>
+    <div class="flow-node-sub">single or batch</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-node flow-red">
+    <div class="flow-node-num">LAYER 1</div>
+    <div class="flow-node-name">Static Patterns</div>
+    <div class="flow-node-sub">Regex · invisible chars · obfuscation · always-on offline</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-node flow-blue">
+    <div class="flow-node-num">LAYER 2</div>
+    <div class="flow-node-name">LLM Semantic</div>
+    <div class="flow-node-sub">Paraphrase · social eng · local model via Ollama</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-node flow-green">
+    <div class="flow-node-num">LAYER 3</div>
+    <div class="flow-node-name">Context Reasoning</div>
+    <div class="flow-node-sub">File purpose · agent role · reduces false positives</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-node" style="background:rgba(224,160,80,0.08); border-color:var(--amber-dim);">
+    <div class="flow-node-num">VERDICT</div>
+    <div class="flow-node-name">Severity Merge</div>
+    <div class="flow-node-sub">Highest wins · context may downgrade with justification · Critical never suppressed</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-node flow-purple">
+    <div class="flow-node-num">OUTPUT</div>
+    <div class="flow-node-name">Scanner UI</div>
+    <div class="flow-node-sub">Line-level · 1-click nav · explainability text</div>
+  </div>
+</div>
+
+<!-- ── AGENT SERVING FLOW ── -->
+<div class="section-gap"></div>
+<div class="section-title">// Agent Serving Flow — Core Vault API</div>
+<div class="flow-row">
+  <div class="flow-node flow-blue">
+    <div class="flow-node-num">AGENT</div>
+    <div class="flow-node-name">Any AI Agent</div>
+    <div class="flow-node-sub">Claude Code · custom · RAG pipeline</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-node flow-green">
+    <div class="flow-node-num">REQUEST</div>
+    <div class="flow-node-name">Local HTTP API</div>
+    <div class="flow-node-sub">GET /files · POST /query · OpenAI-compat endpoint</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-node flow-red">
+    <div class="flow-node-num">GATE</div>
+    <div class="flow-node-name">Risk Check</div>
+    <div class="flow-node-sub">Only screened files served · Quarantined blocked by default</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-node flow-amber">
+    <div class="flow-node-num">RETRIEVAL</div>
+    <div class="flow-node-name">SQLite + LanceDB</div>
+    <div class="flow-node-sub">FTS · semantic · hybrid · &lt;20ms vector query</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-node flow-blue">
+    <div class="flow-node-num">RESPONSE</div>
+    <div class="flow-node-name">File / Chunks</div>
+    <div class="flow-node-sub">Plaintext .md · chunks · metadata · &lt;2s total</div>
+  </div>
+</div>
+
+<!-- ── ANNOTATION CARDS ── -->
+<div class="annotations">
+  <div class="ann-card">
+    <div class="ann-title">// Key decisions</div>
+    <div class="ann-item"><div class="ann-key">Framework</div><div class="ann-val"><strong>Tauri 2.x</strong> · 12MB bundle vs 180MB Electron · ~85MB idle RAM</div></div>
+    <div class="ann-item"><div class="ann-key">Vectors</div><div class="ann-val"><strong>LanceDB</strong> · embedded · &lt;20ms · no server process</div></div>
+    <div class="ann-item"><div class="ann-key">Index</div><div class="ann-val"><strong>SQLite</strong> · FTS5 · disposable · rebuildable</div></div>
+    <div class="ann-item"><div class="ann-key">Sync</div><div class="ann-val"><strong>PocketBase</strong> · self-hosted · single binary</div></div>
+  </div>
+  <div class="ann-card">
+    <div class="ann-title">// Security constraints</div>
+    <div class="ann-item"><div class="ann-key">Scanner</div><div class="ann-val">Never routes to cloud. 3-layer. Auditable pattern library.</div></div>
+    <div class="ann-item"><div class="ann-key">Conflict</div><div class="ann-val">Highest severity wins. Context may downgrade with shown justification only.</div></div>
+    <div class="ann-item"><div class="ann-key">Critical</div><div class="ann-val">Static Critical match never auto-suppressed. User must acknowledge.</div></div>
+    <div class="ann-item"><div class="ann-key">Egress</div><div class="ann-val">Explicit UI disclosure before any cloud send. Opt-in per feature.</div></div>
+  </div>
+  <div class="ann-card">
+    <div class="ann-title">// Acceptance criteria</div>
+    <div class="ann-item"><div class="ann-key">F01 Vault</div><div class="ann-val">Retrieve + serve .md to agent <strong>&lt;2s</strong></div></div>
+    <div class="ann-item"><div class="ann-key">F02 Scanner</div><div class="ann-val"><strong>≥90% precision</strong> · flag nav in 1 interaction</div></div>
+    <div class="ann-item"><div class="ann-key">F03 Summary</div><div class="ann-val"><strong>&lt;10s</strong> · ≥80% beta tester approval</div></div>
+    <div class="ann-item"><div class="ann-key">F04 Explorer</div><div class="ann-val">500KB file rendered interactive <strong>&lt;1.5s</strong></div></div>
+    <div class="ann-item"><div class="ann-key">F05 Categorise</div><div class="ann-val"><strong>≥75% user agreement</strong> · re-sort &lt;5s</div></div>
+  </div>
+  <div class="ann-card">
+    <div class="ann-title">// Privacy invariants</div>
+    <div class="ann-item"><div class="ann-key">Default</div><div class="ann-val">Fully local. Zero cloud. No account required.</div></div>
+    <div class="ann-item"><div class="ann-key">Files</div><div class="ann-val">Plaintext on user disk. Index is derivative.</div></div>
+    <div class="ann-item"><div class="ann-key">Telemetry</div><div class="ann-val">Opt-in only. Off by default.</div></div>
+    <div class="ann-item"><div class="ann-key">Cloud use</div><div class="ann-val">Per-feature. Disclosed. User key (BYOK).</div></div>
+  </div>
+</div>
+
+</body>
+</html>
