@@ -8,12 +8,13 @@ interface ShellProps {
   children: ReactNode;
   page: Page;
   onNavigate: (page: Page) => void;
+  onOpenHelp: () => void;
 }
 
-export function Shell({ children, page, onNavigate }: ShellProps) {
+export function Shell({ children, page, onNavigate, onOpenHelp }: ShellProps) {
   return (
     <div className="flex h-full overflow-hidden bg-[var(--color-background)]">
-      <Sidebar activePage={page} onNavigate={onNavigate} />
+      <Sidebar activePage={page} onNavigate={onNavigate} onOpenHelp={onOpenHelp} />
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <TopBar />
         <main className="flex-1 overflow-auto">{children}</main>

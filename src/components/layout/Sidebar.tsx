@@ -1,4 +1,4 @@
-import { LayoutDashboard, Settings, Shield, Layers, Tag } from "lucide-react";
+import { LayoutDashboard, Settings, Shield, Layers, Tag, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Page } from "@/App";
 
@@ -12,9 +12,10 @@ const navItems: { icon: React.ElementType; label: string; id: string; page?: Pag
 interface SidebarProps {
   activePage: Page;
   onNavigate: (page: Page) => void;
+  onOpenHelp: () => void;
 }
 
-export function Sidebar({ activePage, onNavigate }: SidebarProps) {
+export function Sidebar({ activePage, onNavigate, onOpenHelp }: SidebarProps) {
   return (
     <aside className="w-14 flex flex-col items-center py-4 bg-[var(--color-surface)] border-r border-[var(--color-border-subtle)] shrink-0">
       {/* Logo mark */}
@@ -43,7 +44,19 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
         ))}
       </div>
 
-      {/* Settings pinned to bottom */}
+      {/* Help and Settings pinned to bottom */}
+      <button
+        title="Help"
+        onClick={onOpenHelp}
+        className={cn(
+          "w-9 h-9 rounded flex items-center justify-center transition-colors mt-2",
+          activePage === "help"
+            ? "bg-[var(--color-accent)]/15 text-[var(--color-accent)]"
+            : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)]"
+        )}
+      >
+        <HelpCircle size={16} />
+      </button>
       <button
         title="Settings"
         onClick={() => onNavigate("settings")}
