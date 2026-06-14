@@ -12,6 +12,7 @@ use commands::{
     scanner::{list_rules, scan_file, scan_vault, toggle_rule, update_rules},
     embeddings::{embed_text, ollama_health},
     git::{git_file_at_commit, git_file_history, git_find_root},
+    help::{get_tour_state, set_tour_seen, set_tour_step},
     license::{activate_license, deactivate_license, get_license},
     vault::{
         add_vault, get_file_content, get_snapshot_content, import_files, list_files,
@@ -92,6 +93,10 @@ pub fn run() {
             list_rules,
             toggle_rule,
             update_rules,
+            // help / tour
+            get_tour_state,
+            set_tour_seen,
+            set_tour_step,
             // license
             get_license,
             activate_license,
