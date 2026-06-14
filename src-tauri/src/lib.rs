@@ -12,6 +12,7 @@ use commands::{
     scanner::{list_rules, scan_file, scan_vault, toggle_rule, update_rules},
     embeddings::{embed_text, ollama_health},
     git::{git_file_at_commit, git_file_history, git_find_root},
+    license::{activate_license, deactivate_license, get_license},
     vault::{
         add_vault, get_file_content, get_snapshot_content, import_files, list_files,
         list_snapshots, list_vaults, open_file_in_editor, refresh_vault, remove_file,
@@ -91,6 +92,10 @@ pub fn run() {
             list_rules,
             toggle_rule,
             update_rules,
+            // license
+            get_license,
+            activate_license,
+            deactivate_license,
         ])
         .run(tauri::generate_context!())
         .expect("error running mdownmanager");
