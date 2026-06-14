@@ -72,6 +72,13 @@ dirs = "5"
 axum = "0.8"
 tower-http = { version = "0.6", features = ["cors"] }
 
+# License token verification
+jsonwebtoken = { version = "9", features = [] }
+rsa = { version = "0.9", features = ["pem", "sha2"] }
+
+[dev-dependencies]
+rand = "0.8"
+
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
