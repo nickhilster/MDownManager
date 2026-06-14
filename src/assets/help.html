@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MdownManager Help</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #141720;
+    --surface2: #1a1d2e;
+    --border: #1e2130;
+    --accent: #6366f1;
+    --text: #e5e7eb;
+    --muted: #6b7280;
+    --dim: #4b5563;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .layout { display: flex; height: 100vh; overflow: hidden; }
+  .nav {
+    width: 180px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 16px 0;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+  .nav-title {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--muted);
+    padding: 0 16px 8px;
+  }
+  .nav a {
+    display: block;
+    padding: 6px 16px;
+    color: var(--dim);
+    text-decoration: none;
+    font-size: 12px;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .nav a:hover, .nav a.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(99,102,241,0.06);
+  }
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px 40px;
+    max-width: 700px;
+  }
+  h1 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+  h2 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 32px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    scroll-margin-top: 20px;
+  }
+  h3 { font-size: 12px; font-weight: 600; color: var(--accent); margin: 16px 0 6px; }
+  p { color: var(--muted); margin-bottom: 10px; }
+  code {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--text);
+  }
+  pre {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    overflow-x: auto;
+    margin: 10px 0;
+    font-size: 11px;
+    font-family: monospace;
+    color: var(--text);
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 99px;
+  }
+  .badge-green { background: rgba(16,185,129,0.15); color: #10b981; }
+  .badge-amber { background: rgba(245,158,11,0.15); color: #f59e0b; }
+  .badge-red   { background: rgba(239,68,68,0.15);  color: #ef4444; }
+  .badge-purple { background: rgba(99,102,241,0.15); color: var(--accent); }
+  .risk-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+  .risk-table td, .risk-table th {
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    text-align: left;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .risk-table th { color: var(--dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .demo-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 12px 0;
+  }
+  .search-box {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 7px 12px;
+    color: var(--text);
+    font-size: 12px;
+    outline: none;
+    margin-bottom: 20px;
+  }
+  .search-box:focus { border-color: var(--accent); }
+  .tour-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 7px 14px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-bottom: 28px;
+  }
+  .tour-btn:hover { opacity: 0.88; }
+  section { padding-bottom: 24px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="nav">
+    <div class="nav-title">MdownManager</div>
+    <a href="#vault" onclick="activate(this)">Vault</a>
+    <a href="#scanner" onclick="activate(this)">Scanner</a>
+    <a href="#agent-api" onclick="activate(this)">Agent API</a>
+    <a href="#ai-summarize" onclick="activate(this)">AI Summarize</a>
+    <a href="#settings" onclick="activate(this)">Settings</a>
+    <a href="#license" onclick="activate(this)">License</a>
+  </nav>
+
+  <div class="content">
+    <h1>MdownManager Help</h1>
+    <p style="color:var(--dim);margin-bottom:20px;">Everything you need to use your safe Markdown vault.</p>
+
+    <input class="search-box" type="search" placeholder="Search help…" oninput="filterSections(this.value)" />
+
+    <button class="tour-btn" onclick="window.parent.postMessage('start-tour','*')">
+      &#9654; Start guided tour
+    </button>
+
+    <section id="vault">
+      <h2>Vault</h2>
+      <p>The Vault is your library of Markdown files. MdownManager indexes every <code>.md</code> file in the folders you add and keeps them ready for AI agents to query.</p>
+
+      <h3>Risk badges</h3>
+      <p>Each file gets a risk badge after scanning:</p>
+      <table class="risk-table">
+        <tr><th>Badge</th><th>Meaning</th><th>Agent API access?</th></tr>
+        <tr><td><span class="badge badge-green">&#9679; Safe</span></td><td>No secrets or PII detected</td><td>Yes</td></tr>
+        <tr><td><span class="badge badge-amber">&#9679; Review</span></td><td>Low-confidence finding, worth checking</td><td>Yes (with warning)</td></tr>
+        <tr><td><span class="badge badge-red">&#9679; Blocked</span></td><td>High-confidence secret or PII found</td><td>No — excluded automatically</td></tr>
+      </table>
+
+      <h3>Adding a folder</h3>
+      <p>Click <strong>Add Vault</strong> in the top bar and pick any folder. MdownManager scans all <code>.md</code> files recursively. Free tier supports one vault; Commercial and Non-profit support unlimited vaults.</p>
+
+      <h3>Refreshing</h3>
+      <p>Click the refresh icon next to the vault name to re-index files added since the last scan.</p>
+    </section>
+
+    <section id="scanner">
+      <h2>Scanner</h2>
+      <p>The Scanner inspects each Markdown file line-by-line against a library of regex rules looking for secrets, API keys, passwords, and PII.</p>
+
+      <h3>What gets flagged</h3>
+      <ul style="color:var(--muted);padding-left:18px;margin-bottom:10px;">
+        <li>API keys (AWS, Stripe, GitHub, Anthropic, OpenAI…)</li>
+        <li>Private keys and certificates</li>
+        <li>Connection strings with embedded passwords</li>
+        <li>Email addresses in potentially sensitive contexts</li>
+        <li>Credit card and SSN patterns</li>
+      </ul>
+
+      <h3>Running a scan</h3>
+      <p>Open the Scanner tab and click <strong>Scan vault</strong>. Each file is checked against all enabled rules.</p>
+
+      <h3>Managing rules</h3>
+      <p>Toggle individual rules on or off in the Scanner rules list. Click <strong>Update rules</strong> to pull the latest Gitleaks rule set from the Teambotics CDN.</p>
+    </section>
+
+    <section id="agent-api">
+      <h2>Local Agent API</h2>
+      <p>MdownManager runs a local HTTP server at <code>http://localhost:7734</code>. IDE agents (Claude Code, Cursor, Copilot) can query it to read your <em>safe, scanned</em> Markdown files — blocked files are never served.</p>
+
+      <div class="demo-box">
+        <p style="color:var(--dim);font-size:11px;margin-bottom:8px;">Available on Commercial and Non-profit licenses.</p>
+        <p style="color:var(--dim);font-size:11px;">Find your bearer token in <strong>Settings &#8594; Local Agent API</strong>.</p>
+      </div>
+
+      <h3>Endpoints</h3>
+      <pre>GET /health                          — server status
+GET /vaults                          — list vaults
+GET /files?vault_id=&lt;id&gt;             — list safe files
+GET /search?vault_id=&lt;id&gt;&amp;q=&lt;query&gt;  — full-text search
+GET /files/&lt;id&gt;/content              — raw Markdown</pre>
+
+      <h3>Claude Code setup</h3>
+      <p>Add this to your <code>CLAUDE.md</code>:</p>
+      <pre>## MdownManager Vault
+Safe Markdown is at http://localhost:7734.
+Use: Authorization: Bearer &lt;your-token&gt;
+
+GET /vaults            — list vaults
+GET /files?vault_id=x  — list files
+GET /search?vault_id=x&amp;q=deployment  — search
+GET /files/&lt;id&gt;/content — raw content</pre>
+    </section>
+
+    <section id="ai-summarize">
+      <h2>AI Summarize</h2>
+      <p>Generate one-sentence summaries for each file using a cloud AI model. Summaries are stored locally and shown in the file detail panel.</p>
+
+      <h3>Setup</h3>
+      <p>Go to <strong>Settings &#8594; AI Provider Keys</strong> and add your API key for any supported provider:</p>
+      <ul style="color:var(--muted);padding-left:18px;margin-bottom:10px;">
+        <li>Anthropic (Claude) — <code>sk-ant-…</code></li>
+        <li>OpenAI (GPT) — <code>sk-…</code></li>
+        <li>DeepSeek — <code>sk-…</code></li>
+        <li>Google (Gemini) — <code>AIza…</code></li>
+      </ul>
+      <p>Keys are stored in the local SQLite database. They are never sent to Teambotics.</p>
+    </section>
+
+    <section id="settings">
+      <h2>Settings</h2>
+      <h3>AI Provider Keys</h3>
+      <p>Paste your cloud AI key and click <strong>Save</strong>. Keys are masked after saving.</p>
+
+      <h3>Local Agent API</h3>
+      <p>Shows your bearer token and the local server endpoint. Available on Commercial and Non-profit licenses.</p>
+
+      <h3>License</h3>
+      <p>Paste a license token here to activate Commercial or Non-profit features.</p>
+    </section>
+
+    <section id="license">
+      <h2>License</h2>
+      <table class="risk-table">
+        <tr><th>Tier</th><th>Price</th><th>Vaults</th><th>Agent API</th><th>Auto-scan</th></tr>
+        <tr><td><span class="badge badge-purple">Free</span></td><td>$0</td><td>1</td><td>—</td><td>—</td></tr>
+        <tr><td><span class="badge badge-purple">Commercial</span></td><td>Paid</td><td>Unlimited</td><td>&#10003;</td><td>&#10003;</td></tr>
+        <tr><td><span class="badge badge-purple">Non-profit</span></td><td>$0</td><td>Unlimited</td><td>&#10003;</td><td>&#10003;</td></tr>
+      </table>
+      <p style="margin-top:12px;">Non-profits apply at <strong>teambotics.com/nonprofit</strong>. Tokens are valid for 12 months.</p>
+    </section>
+  </div>
+</div>
+
+<script>
+  function filterSections(query) {
+    var q = query.toLowerCase().trim();
+    document.querySelectorAll('section').forEach(function(sec) {
+      sec.classList.toggle('hidden', q.length > 0 && !sec.textContent.toLowerCase().includes(q));
+    });
+  }
+
+  function activate(el) {
+    document.querySelectorAll('.nav a').forEach(function(a) { a.classList.remove('active'); });
+    el.classList.add('active');
+  }
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        var id = entry.target.id;
+        document.querySelectorAll('.nav a').forEach(function(a) {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { threshold: 0.4 });
+  document.querySelectorAll('section[id]').forEach(function(s) { observer.observe(s); });
+</script>
+</body>
+</html>
