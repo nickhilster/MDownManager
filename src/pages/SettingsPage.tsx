@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Check, Copy, Eye, EyeOff, KeyRound, Terminal, Zap } from "lucide-react";
+import { BadgeCheck, Check, Copy, ExternalLink, Eye, EyeOff, KeyRound, Terminal, Zap } from "lucide-react";
 import { CloudProvider, getApiKey, getCloudApiKey, setCloudApiKey } from "@/lib/tauri";
 import { toast } from "@/components/ui/Toast";
+import { useLicense } from "@/lib/licenseContext";
 
 const API_BASE = "http://localhost:7734";
 
@@ -26,6 +27,11 @@ export function SettingsPage() {
   const [saving, setSaving] = useState<CloudProvider | null>(null);
   const [showKey, setShowKey] = useState<Partial<Record<CloudProvider, boolean>>>({});
 
+  const { license, refresh, deactivate, activate, gate } = useLicense();
+  const [licenseToken, setLicenseToken] = useState("");
+  const [activating, setActivating] = useState(false);
+  const [deactivating, setDeactivating] = useState(false);
+
   useEffect(() => {
     getApiKey().then(setApiKey).catch(() => setApiKey(null));
     // Load existing cloud keys (masked — just check if set)
@@ -45,6 +51,33 @@ export function SettingsPage() {
       toast(`Failed to save key: ${e}`);
     } finally {
       setSaving(null);
+    }
+  };
+
+  const handleActivateLicense = async () => {
+    if (!licenseToken.trim()) return;
+    setActivating(true);
+    try {
+      await activate(licenseToken.trim());
+      await refresh();
+      setLicenseToken("");
+      toast("License activated", "success");
+    } catch (e) {
+      toast(`Invalid license token: ${e}`);
+    } finally {
+      setActivating(false);
+    }
+  };
+
+  const handleDeactivateLicense = async () => {
+    setDeactivating(true);
+    try {
+      await deactivate();
+      toast("License removed — reverted to Free", "success");
+    } catch (e) {
+      toast(`Failed to deactivate: ${e}`);
+    } finally {
+      setDeactivating(false);
     }
   };
 
@@ -164,66 +197,87 @@ export function SettingsPage() {
           can query to access your safe, scanned Markdown files.
         </p>
 
-        <div className="space-y-3">
-          <Field label="Endpoint">
-            <div className="flex items-center gap-2 flex-1">
-              <code className="flex-1 text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] px-3 py-1.5 rounded border border-[var(--color-border-subtle)]">
-                {API_BASE}
-              </code>
-              <CopyButton text={API_BASE} id="endpoint" />
-            </div>
-          </Field>
+        {gate("agent_api") ? (
+          <>
+            <div className="space-y-3">
+              <Field label="Endpoint">
+                <div className="flex items-center gap-2 flex-1">
+                  <code className="flex-1 text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] px-3 py-1.5 rounded border border-[var(--color-border-subtle)]">
+                    {API_BASE}
+                  </code>
+                  <CopyButton text={API_BASE} id="endpoint" />
+                </div>
+              </Field>
 
-          <Field label="API Key">
-            {apiKey ? (
-              <div className="flex items-center gap-2 flex-1">
-                <code className="flex-1 text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] px-3 py-1.5 rounded border border-[var(--color-border-subtle)] truncate">
-                  {apiKey}
-                </code>
-                <CopyButton text={apiKey} id="apikey" />
-              </div>
-            ) : (
-              <span className="text-xs text-[var(--color-text-muted)] italic">Loading…</span>
-            )}
-          </Field>
-        </div>
+              <Field label="API Key">
+                {apiKey ? (
+                  <div className="flex items-center gap-2 flex-1">
+                    <code className="flex-1 text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] px-3 py-1.5 rounded border border-[var(--color-border-subtle)] truncate">
+                      {apiKey}
+                    </code>
+                    <CopyButton text={apiKey} id="apikey" />
+                  </div>
+                ) : (
+                  <span className="text-xs text-[var(--color-text-muted)] italic">Loading…</span>
+                )}
+              </Field>
+            </div>
+          </>
+        ) : (
+          <div className="rounded border border-[var(--color-border-subtle)] bg-[var(--color-surface-2)] px-4 py-3">
+            <p className="text-sm text-[var(--color-text-muted)]">
+              The Local Agent API is available on <strong className="text-[var(--color-text-secondary)]">Commercial</strong> and <strong className="text-[var(--color-text-secondary)]">Non-profit</strong> licenses.
+            </p>
+            <a
+              href="https://teambotics.com/mdownmanager"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-block text-xs text-[var(--color-accent)] hover:underline"
+            >
+              Upgrade →
+            </a>
+          </div>
+        )}
       </section>
 
       {/* Example usage */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Terminal size={15} className="text-[var(--color-accent)]" />
-          <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
-            Example Requests
-          </h2>
-        </div>
+      {gate("agent_api") && (
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Terminal size={15} className="text-[var(--color-accent)]" />
+            <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
+              Example Requests
+            </h2>
+          </div>
 
-        <div className="space-y-3">
-          {examples.map((ex) => (
-            <div key={ex.label}>
-              <div className="text-xs text-[var(--color-text-muted)] mb-1">{ex.label}</div>
-              <div className="flex items-start gap-2">
-                <pre className="flex-1 text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] px-3 py-2 rounded border border-[var(--color-border-subtle)] overflow-auto whitespace-pre-wrap break-all">
-                  {ex.cmd}
-                </pre>
-                <CopyButton text={ex.cmd} id={ex.label} />
+          <div className="space-y-3">
+            {examples.map((ex) => (
+              <div key={ex.label}>
+                <div className="text-xs text-[var(--color-text-muted)] mb-1">{ex.label}</div>
+                <div className="flex items-start gap-2">
+                  <pre className="flex-1 text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] px-3 py-2 rounded border border-[var(--color-border-subtle)] overflow-auto whitespace-pre-wrap break-all">
+                    {ex.cmd}
+                  </pre>
+                  <CopyButton text={ex.cmd} id={ex.label} />
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Claude Code snippet */}
-      <section className="space-y-4">
-        <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
-          Claude Code Integration
-        </h2>
-        <p className="text-sm text-[var(--color-text-muted)]">
-          Add this to your <code className="text-xs bg-[var(--color-surface-2)] px-1 py-0.5 rounded">CLAUDE.md</code> or paste
-          it into a Claude Code conversation:
-        </p>
-        <div className="flex items-start gap-2">
-          <pre className="flex-1 text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] px-3 py-3 rounded border border-[var(--color-border-subtle)] whitespace-pre-wrap">
+      {gate("agent_api") && (
+        <section className="space-y-4">
+          <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
+            Claude Code Integration
+          </h2>
+          <p className="text-sm text-[var(--color-text-muted)]">
+            Add this to your <code className="text-xs bg-[var(--color-surface-2)] px-1 py-0.5 rounded">CLAUDE.md</code> or paste
+            it into a Claude Code conversation:
+          </p>
+          <div className="flex items-start gap-2">
+            <pre className="flex-1 text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-surface-2)] px-3 py-3 rounded border border-[var(--color-border-subtle)] whitespace-pre-wrap">
 {`# MDownManager Vault
 Safe Markdown files are available at http://localhost:7734.
 Use Authorization: Bearer ${apiKey ?? "<api-key>"} on every request.
@@ -232,12 +286,90 @@ GET /vaults                      — list vaults
 GET /files?vault_id=<id>         — list files
 GET /search?vault_id=<id>&q=...  — FTS search
 GET /files/<id>/content          — raw Markdown`}
-          </pre>
-          <CopyButton
-            text={`# MDownManager Vault\nSafe Markdown files are available at http://localhost:7734.\nUse Authorization: Bearer ${apiKey ?? "<api-key>"} on every request.\n\nGET /vaults                      — list vaults\nGET /files?vault_id=<id>         — list files\nGET /search?vault_id=<id>&q=...  — FTS search\nGET /files/<id>/content          — raw Markdown`}
-            id="claude-md"
-          />
+            </pre>
+            <CopyButton
+              text={`# MDownManager Vault\nSafe Markdown files are available at http://localhost:7734.\nUse Authorization: Bearer ${apiKey ?? "<api-key>"} on every request.\n\nGET /vaults                      — list vaults\nGET /files?vault_id=<id>         — list files\nGET /search?vault_id=<id>&q=...  — FTS search\nGET /files/<id>/content          — raw Markdown`}
+              id="claude-md"
+            />
+          </div>
+        </section>
+      )}
+
+      {/* License */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <BadgeCheck size={15} className="text-[var(--color-accent)]" />
+          <h2 className="text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
+            License
+          </h2>
         </div>
+
+        {license.tier === "free" ? (
+          <div className="space-y-3">
+            <p className="text-sm text-[var(--color-text-muted)]">
+              Running on the <strong className="text-[var(--color-text-secondary)]">Free</strong> tier.
+              The Local Agent API and auto-scan require a Commercial or Non-profit license.
+            </p>
+            <p className="text-xs text-[var(--color-text-muted)]">
+              Purchase at{" "}
+              <a href="https://teambotics.com/mdownmanager" target="_blank" rel="noopener noreferrer"
+                className="text-[var(--color-accent)] hover:underline">
+                teambotics.com/mdownmanager
+              </a>{" "}
+              · Non-profits apply at{" "}
+              <a href="https://teambotics.com/nonprofit" target="_blank" rel="noopener noreferrer"
+                className="text-[var(--color-accent)] hover:underline">
+                teambotics.com/nonprofit
+              </a>
+            </p>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={licenseToken}
+                placeholder="Paste license token…"
+                onChange={(e) => setLicenseToken(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleActivateLicense()}
+                className="flex-1 text-xs font-mono bg-[var(--color-surface-2)] border border-[var(--color-border-subtle)] rounded px-3 py-1.5 text-[var(--color-text-secondary)] focus:outline-none focus:border-[var(--color-accent)]"
+              />
+              <button
+                onClick={handleActivateLicense}
+                disabled={activating || !licenseToken.trim()}
+                className="shrink-0 text-xs px-3 py-1.5 rounded bg-[var(--color-accent)] text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
+              >
+                {activating ? "Activating…" : "Activate"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-accent)]/15 text-[var(--color-accent)] font-medium capitalize">
+                {license.tier === "nonprofit" ? "Non-profit" : "Commercial"}
+              </span>
+              <span className="text-xs text-[var(--color-text-muted)]">license active</span>
+            </div>
+            {license.org_name && (
+              <p className="text-xs text-[var(--color-text-muted)]">
+                Licensed to: <span className="text-[var(--color-text-secondary)]">{license.org_name}</span>
+              </p>
+            )}
+            {license.expires_at && (
+              <p className="text-xs text-[var(--color-text-muted)]">
+                Expires:{" "}
+                <span className="text-[var(--color-text-secondary)]">
+                  {new Date(license.expires_at * 1000).toLocaleDateString()}
+                </span>
+              </p>
+            )}
+            <button
+              onClick={handleDeactivateLicense}
+              disabled={deactivating}
+              className="text-xs text-[var(--color-text-muted)] hover:text-red-400 transition-colors disabled:opacity-50"
+            >
+              {deactivating ? "Removing…" : "Remove license"}
+            </button>
+          </div>
+        )}
       </section>
 
       {/* Health check */}
@@ -246,6 +378,35 @@ GET /files/<id>/content          — raw Markdown`}
           Check server: <code className="bg-[var(--color-surface-2)] px-1 py-0.5 rounded">curl {API_BASE}/health</code>
         </p>
       </section>
+
+      {/* Teambotics credit footer */}
+      <div className="border-t border-[var(--color-border-subtle)] pt-6 flex items-center gap-3">
+        <div className="w-6 h-6 rounded bg-[var(--color-surface-2)] flex items-center justify-center shrink-0">
+          <div className="w-3 h-3 rounded-[3px] bg-[var(--color-accent)] opacity-60" />
+        </div>
+        <div>
+          <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
+            {license.tier === "nonprofit"
+              ? `Non-profit license${license.org_name ? ` · Licensed to ${license.org_name}` : ""}`
+              : license.tier === "commercial"
+              ? "Commercial license"
+              : "Free"}{" "}
+            · Powered by{" "}
+            <a
+              href="https://teambotics.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--color-accent)] hover:underline inline-flex items-center gap-0.5"
+            >
+              Teambotics
+              <ExternalLink size={10} className="inline" />
+            </a>
+          </p>
+          <p className="text-[10px] text-[var(--color-text-muted)] opacity-50 mt-0.5">
+            MdownManager v{__APP_VERSION__}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
