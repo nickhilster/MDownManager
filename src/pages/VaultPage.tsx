@@ -24,6 +24,7 @@ import { FileDetailPanel } from "@/components/vault/FileDetailPanel";
 import { toast } from "@/components/ui/Toast";
 import { useResizable } from "@/hooks/useResizable";
 import { cn } from "@/lib/utils";
+import { useLicense } from "@/lib/licenseContext";
 
 interface SummarizeProgress {
   done: number;
@@ -43,6 +44,7 @@ export function VaultPage() {
   const [summarizing, setSummarizing] = useState<SummarizeProgress | null>(null);
   const dropRef = useRef<HTMLDivElement>(null);
   const { width: panelWidth, onMouseDown: onResizeStart } = useResizable(380, 240, 700);
+  const { license } = useLicense();
 
   // Initial load
   useEffect(() => {
@@ -82,6 +84,10 @@ export function VaultPage() {
   // ── Vault actions ────────────────────────────────────────────────────────
 
   const handleAddVault = async () => {
+    if (license.tier === "free" && vaults.length >= 1) {
+      toast("Free tier supports one vault. Upgrade to add more.");
+      return;
+    }
     try {
       const selected = await openDialog({ directory: true, multiple: false });
       if (!selected || typeof selected !== "string") return;
