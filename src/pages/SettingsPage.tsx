@@ -403,7 +403,7 @@ GET /files/<id>/content          — raw Markdown`}
             </a>
           </p>
           <p className="text-[10px] text-[var(--color-text-muted)] opacity-50 mt-0.5">
-            MdownManager v{__APP_VERSION__}
+            MDownManager v{__APP_VERSION__}
           </p>
         </div>
       </div>

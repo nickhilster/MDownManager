@@ -46,11 +46,9 @@ export function SplashScreen({
     >
       {/* App logo + name */}
       <div className="flex flex-col items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-[var(--color-accent)] flex items-center justify-center">
-          <span className="text-white font-bold text-xl">M</span>
-        </div>
+        <img src="/icon.png" alt="MDownManager" className="w-12 h-12 rounded-xl" />
         <span className="text-lg font-semibold text-[var(--color-text-primary)] tracking-tight">
-          MdownManager
+          MDownManager
         </span>
 
         {/* Progress bar */}

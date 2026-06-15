@@ -21,8 +21,8 @@ export interface TourStep {
 export const TOUR_STEPS: TourStep[] = [
   {
     target: "sidebar-logo",
-    title: "Welcome to MdownManager",
-    body: "MdownManager turns your Markdown files into a safe, scanned vault. Only clean files reach your AI coding agents — secrets and PII stay out.",
+    title: "Welcome to MDownManager",
+    body: "MDownManager turns your Markdown files into a safe, scanned vault. Only clean files reach your AI coding agents — secrets and PII stay out.",
     page: "vault",
   },
   {

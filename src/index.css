@@ -12,9 +12,9 @@
   --color-text-secondary: #8b91a8;
   --color-text-muted: #555d78;
 
-  --color-accent: #22c55e;
-  --color-accent-hover: #4ade80;
-  --color-accent-bg: rgba(34, 197, 94, 0.12);
+  --color-accent: #0b3a82;
+  --color-accent-hover: #1a52b5;
+  --color-accent-bg: rgba(11, 58, 130, 0.12);
 
   --color-risk-low: #22c55e;
   --color-risk-medium: #f59e0b;
@@ -46,9 +46,9 @@
   --color-text-secondary: #4b5563;
   --color-text-muted: #9ca3af;
 
-  --color-accent: #16a34a;
-  --color-accent-hover: #15803d;
-  --color-accent-bg: rgba(22, 163, 74, 0.10);
+  --color-accent: #0b3a82;
+  --color-accent-hover: #1a52b5;
+  --color-accent-bg: rgba(11, 58, 130, 0.10);
 }
 
 /* ── Font size presets ─────────────────────────────────────────────────── */

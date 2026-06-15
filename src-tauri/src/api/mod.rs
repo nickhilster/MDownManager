@@ -221,14 +221,14 @@ pub async fn start(db_path: PathBuf, api_key: String) {
     let listener = match tokio::net::TcpListener::bind("127.0.0.1:7734").await {
         Ok(l) => l,
         Err(e) => {
-            log::error!("MdownManager API: failed to bind port 7734 — {e}");
+            log::error!("MDownManager API: failed to bind port 7734 — {e}");
             return;
         }
     };
 
-    log::info!("MdownManager agent API → http://127.0.0.1:7734");
+    log::info!("MDownManager agent API → http://127.0.0.1:7734");
 
     if let Err(e) = axum::serve(listener, app).await {
-        log::error!("MdownManager API server error: {e}");
+        log::error!("MDownManager API server error: {e}");
     }
 }

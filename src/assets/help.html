@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MdownManager Help</title>
+<title>MDownManager Help</title>
 <style>
   :root {
     --bg: #0f1117;
@@ -154,7 +154,7 @@
 <body>
 <div class="layout">
   <nav class="nav">
-    <div class="nav-title">MdownManager</div>
+    <div class="nav-title">MDownManager</div>
     <a href="#vault" onclick="activate(this)">Vault</a>
     <a href="#scanner" onclick="activate(this)">Scanner</a>
     <a href="#agent-api" onclick="activate(this)">Agent API</a>
@@ -164,7 +164,7 @@
   </nav>
 
   <div class="content">
-    <h1>MdownManager Help</h1>
+    <h1>MDownManager Help</h1>
     <p style="color:var(--dim);margin-bottom:20px;">Everything you need to use your safe Markdown vault.</p>
 
     <input class="search-box" type="search" placeholder="Search help…" oninput="filterSections(this.value)" />
@@ -175,7 +175,7 @@
 
     <section id="vault">
       <h2>Vault</h2>
-      <p>The Vault is your library of Markdown files. MdownManager indexes every <code>.md</code> file in the folders you add and keeps them ready for AI agents to query.</p>
+      <p>The Vault is your library of Markdown files. MDownManager indexes every <code>.md</code> file in the folders you add and keeps them ready for AI agents to query.</p>
 
       <h3>Risk badges</h3>
       <p>Each file gets a risk badge after scanning:</p>
@@ -187,7 +187,7 @@
       </table>
 
       <h3>Adding a folder</h3>
-      <p>Click <strong>Add Vault</strong> in the top bar and pick any folder. MdownManager scans all <code>.md</code> files recursively. Free tier supports one vault; Commercial and Non-profit support unlimited vaults.</p>
+      <p>Click <strong>Add Vault</strong> in the top bar and pick any folder. MDownManager scans all <code>.md</code> files recursively. Free tier supports one vault; Commercial and Non-profit support unlimited vaults.</p>
 
       <h3>Refreshing</h3>
       <p>Click the refresh icon next to the vault name to re-index files added since the last scan.</p>
@@ -215,7 +215,7 @@
 
     <section id="agent-api">
       <h2>Local Agent API</h2>
-      <p>MdownManager runs a local HTTP server at <code>http://localhost:7734</code>. IDE agents (Claude Code, Cursor, Copilot) can query it to read your <em>safe, scanned</em> Markdown files — blocked files are never served.</p>
+      <p>MDownManager runs a local HTTP server at <code>http://localhost:7734</code>. IDE agents (Claude Code, Cursor, Copilot) can query it to read your <em>safe, scanned</em> Markdown files — blocked files are never served.</p>
 
       <div class="demo-box">
         <p style="color:var(--dim);font-size:11px;margin-bottom:8px;">Available on Commercial and Non-profit licenses.</p>
@@ -231,7 +231,7 @@ GET /files/&lt;id&gt;/content              — raw Markdown</pre>
 
       <h3>Claude Code setup</h3>
       <p>Add this to your <code>CLAUDE.md</code>:</p>
-      <pre>## MdownManager Vault
+      <pre>## MDownManager Vault
 Safe Markdown is at http://localhost:7734.
 Use: Authorization: Bearer &lt;your-token&gt;
 

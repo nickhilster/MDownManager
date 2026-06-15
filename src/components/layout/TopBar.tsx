@@ -26,7 +26,7 @@ export function TopBar() {
   return (
     <header className="h-11 flex items-center justify-between px-4 border-b border-[var(--color-border-subtle)] bg-[var(--color-surface)] shrink-0">
       <span className="text-sm font-semibold text-[var(--color-text-primary)] tracking-wide">
-        MdownManager
+        MDownManager
       </span>
 
       <div className="flex items-center gap-3">

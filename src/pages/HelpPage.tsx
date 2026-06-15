@@ -18,7 +18,7 @@ export function HelpPage({ onStartTour }: HelpPageProps) {
     <div className="h-full w-full overflow-hidden">
       <iframe
         srcDoc={helpHtml}
-        title="MdownManager Help"
+        title="MDownManager Help"
         className="w-full h-full border-0"
         sandbox="allow-scripts allow-same-origin"
       />
