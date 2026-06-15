@@ -26,6 +26,13 @@ pub fn index_file(conn: &Connection, vault_id: &str, path: &Path) -> Result<File
 
     let frontmatter = extract_frontmatter(&content);
 
+    // Auto-tag SKILL.md files; NULL category_source satisfies the existing CHECK constraint
+    let (category_id, category_source) = if is_skill_file(path) {
+        (Some("skill".to_string()), None)
+    } else {
+        (None, None)
+    };
+
     let now = Utc::now().to_rfc3339();
 
     let existing_id = conn
@@ -51,8 +58,8 @@ pub fn index_file(conn: &Connection, vault_id: &str, path: &Path) -> Result<File
         modified_at: now.clone(),
         last_scanned_at: None,
         risk_level: None,
-        category_id: None,
-        category_source: None,
+        category_id,
+        category_source,
         embedding_ref: None,
         tags: None,
         summary: None,
@@ -114,6 +121,13 @@ fn extract_title(content: &str) -> Option<String> {
         }
     }
     None
+}
+
+fn is_skill_file(path: &Path) -> bool {
+    path.file_name()
+        .and_then(|n| n.to_str())
+        .map(|n| n.eq_ignore_ascii_case("SKILL.md"))
+        .unwrap_or(false)
 }
 
 fn extract_frontmatter(content: &str) -> Option<String> {

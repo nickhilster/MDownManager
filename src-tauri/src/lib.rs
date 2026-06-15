@@ -15,9 +15,9 @@ use commands::{
     help::{get_tour_state, set_tour_seen, set_tour_step},
     license::{activate_license, deactivate_license, get_license},
     vault::{
-        add_vault, get_file_content, get_snapshot_content, import_files, list_files,
-        list_snapshots, list_vaults, open_file_in_editor, refresh_vault, remove_file,
-        remove_vault, search_files, DbState,
+        add_vault, get_file_content, get_snapshot_content, import_files, import_github_repo,
+        list_files, list_snapshots, list_vaults, open_file_in_editor, refresh_vault,
+        remove_file, remove_vault, search_files, DbState,
     },
 };
 use db::queries;
@@ -35,9 +35,9 @@ pub fn run() {
 
     let conn = db::open(&db_path).expect("open database");
 
-    // Seed default scanner rules on first run (no-op if table already populated)
-    queries::seed_rules_if_empty(&conn, scanner::default_rules())
-        .unwrap_or_else(|e| log::warn!("Could not seed scanner rules: {e}"));
+    // Ensure all default scanner rules exist (inserts only missing ones; preserves user enable/disable state)
+    queries::insert_missing_rules(&conn, scanner::default_rules())
+        .unwrap_or_else(|e| { log::warn!("Could not seed scanner rules: {e}"); 0 });
 
     // Generate API key before conn is moved into managed state
     let api_key = queries::get_or_create_api_key(&conn)
@@ -60,6 +60,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             // vault
             add_vault,
+            import_github_repo,
             list_vaults,
             list_files,
             search_files,

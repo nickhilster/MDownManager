@@ -90,8 +90,11 @@ pub fn upsert_file(conn: &Connection, f: &FileRecord) -> Result<()> {
             last_scanned_at=excluded.last_scanned_at,
             risk_level=excluded.risk_level,
             embedding_ref=excluded.embedding_ref,
-            tags=excluded.tags",
-        // summary and summary_model intentionally excluded — never overwritten on re-index
+            tags=excluded.tags,
+            category_id=COALESCE(category_id, excluded.category_id),
+            category_source=COALESCE(category_source, excluded.category_source)",
+        // summary/summary_model: never overwritten on re-index
+        // category_id/category_source: COALESCE preserves any existing user-set value
         params![
             f.id, f.vault_id, f.path, f.title, f.content_hash,
             f.frontmatter, f.size_bytes, f.line_count, f.created_at,
@@ -342,4 +345,24 @@ pub fn seed_rules_if_empty(conn: &Connection, rules: Vec<DbRule>) -> Result<()> 
         upsert_rule(conn, &rule)?;
     }
     Ok(())
+}
+
+/// Inserts any default rules that don't yet exist (safe to call on every startup).
+/// Does NOT overwrite existing rules so user enable/disable choices are preserved.
+pub fn insert_missing_rules(conn: &Connection, rules: Vec<DbRule>) -> Result<u32> {
+    let mut added = 0u32;
+    for rule in rules {
+        let exists: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM scanner_rules WHERE id = ?1",
+                params![&rule.id],
+                |r| r.get(0),
+            )
+            .unwrap_or(0);
+        if exists == 0 {
+            upsert_rule(conn, &rule)?;
+            added += 1;
+        }
+    }
+    Ok(added)
 }

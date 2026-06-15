@@ -1,5 +1,5 @@
-use anyhow::Result;
 use chrono::Utc;
+use dirs::data_dir;
 use rusqlite::params;
 use std::path::Path;
 use std::sync::Mutex;
@@ -15,18 +15,14 @@ use crate::vault::{
 
 pub struct DbState(pub Mutex<rusqlite::Connection>);
 
-// ── Vault management ─────────────────────────────────────────────────────────
+// ── Shared vault-creation logic ──────────────────────────────────────────────
 
-#[tauri::command]
-pub fn add_vault(path: String, name: String, state: State<DbState>) -> Result<VaultRecord, String> {
-    let conn = state.0.lock().map_err(|e| e.to_string())?;
-    let vault_path = Path::new(&path);
-    let git_root = git::find_git_root(vault_path);
+fn add_vault_at(conn: &rusqlite::Connection, path: &Path, name: String) -> Result<VaultRecord, String> {
+    let git_root = git::find_git_root(path);
 
-    // Reuse existing UUID so files already indexed stay linked to this vault
     let existing_id: Option<String> = match conn.query_row(
         "SELECT id FROM vaults WHERE path = ?1",
-        params![&path],
+        params![path.to_string_lossy().as_ref()],
         |row| row.get::<_, String>(0),
     ) {
         Ok(id) => Some(id),
@@ -37,16 +33,61 @@ pub fn add_vault(path: String, name: String, state: State<DbState>) -> Result<Va
     let vault = VaultRecord {
         id: existing_id.unwrap_or_else(|| Uuid::new_v4().to_string()),
         name,
-        path: path.clone(),
+        path: path.to_string_lossy().to_string(),
         created_at: Utc::now().to_rfc3339(),
         git_root,
     };
-    queries::upsert_vault(&conn, &vault).map_err(|e| e.to_string())?;
-
-    // Index all .md files in the vault
-    indexer::index_vault(&conn, &vault.id, vault_path).map_err(|e| e.to_string())?;
-
+    queries::upsert_vault(conn, &vault).map_err(|e| e.to_string())?;
+    indexer::index_vault(conn, &vault.id, path).map_err(|e| e.to_string())?;
     Ok(vault)
+}
+
+fn derive_repo_name(url: &str) -> String {
+    url.trim_end_matches('/')
+        .trim_end_matches(".git")
+        .split('/')
+        .last()
+        .unwrap_or("repo")
+        .to_string()
+}
+
+// ── Vault management ─────────────────────────────────────────────────────────
+
+#[tauri::command]
+pub fn add_vault(path: String, name: String, state: State<DbState>) -> Result<VaultRecord, String> {
+    let conn = state.0.lock().map_err(|e| e.to_string())?;
+    add_vault_at(&conn, Path::new(&path), name)
+}
+
+#[tauri::command]
+pub fn import_github_repo(
+    url: String,
+    name: Option<String>,
+    state: State<DbState>,
+) -> Result<VaultRecord, String> {
+    let repo_name = name.unwrap_or_else(|| derive_repo_name(&url));
+
+    let clone_dir = data_dir()
+        .unwrap_or_else(|| std::path::PathBuf::from("."))
+        .join("mdownmanager")
+        .join("repos")
+        .join(&repo_name);
+
+    if clone_dir.exists() {
+        return Err(format!(
+            "A local copy of '{repo_name}' already exists. Remove the directory or supply a different name."
+        ));
+    }
+
+    std::fs::create_dir_all(&clone_dir).map_err(|e| e.to_string())?;
+
+    git2::Repository::clone(&url, &clone_dir).map_err(|e| {
+        let _ = std::fs::remove_dir_all(&clone_dir);
+        format!("Git clone failed: {e}")
+    })?;
+
+    let conn = state.0.lock().map_err(|e| e.to_string())?;
+    add_vault_at(&conn, &clone_dir, repo_name)
 }
 
 #[tauri::command]

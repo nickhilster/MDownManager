@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-type Variant = "default" | "low" | "medium" | "high" | "critical" | "ai" | "manual";
+type Variant = "default" | "low" | "medium" | "high" | "critical" | "ai" | "manual" | "skill" | "skill-valid";
 
 const variants: Record<Variant, string> = {
   default: "bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]",
@@ -10,6 +10,8 @@ const variants: Record<Variant, string> = {
   critical: "bg-red-700/50 text-red-200 border border-red-600/70 font-semibold",
   ai: "bg-blue-900/40 text-blue-400 border border-blue-800/50",
   manual: "bg-purple-900/40 text-purple-400 border border-purple-800/50",
+  skill: "bg-[var(--color-surface-2)] text-[var(--color-text-muted)] border border-[var(--color-border-subtle)]",
+  "skill-valid": "bg-emerald-900/40 text-emerald-400 border border-emerald-800/50",
 };
 
 interface BadgeProps {

@@ -42,7 +42,7 @@ async fn health() -> Json<Value> {
         "status": "ok",
         "version": env!("CARGO_PKG_VERSION"),
         "port": 7734,
-        "docs": "GET /vaults · GET /files?vault_id= · GET /search?q= · GET /files/:id/content"
+        "docs": "GET /vaults · GET /files?vault_id=&category= · GET /search?q=&vault_id= · GET /files/:id/content"
     }))
 }
 
@@ -76,6 +76,7 @@ async fn list_vaults(
 #[derive(Deserialize)]
 struct FilesQuery {
     vault_id: Option<String>,
+    category: Option<String>,
 }
 
 async fn list_files(
@@ -87,17 +88,24 @@ async fn list_files(
         return Err(StatusCode::UNAUTHORIZED);
     }
     let conn = db(&s)?;
-    let sql = match q.vault_id.as_deref() {
-        Some(vid) => format!(
-            "SELECT id, vault_id, path, title, summary, size_bytes, line_count, modified_at, risk_level \
-             FROM files WHERE vault_id = '{}' ORDER BY modified_at DESC LIMIT 500",
-            vid.replace('\'', "''")
-        ),
-        None =>
-            "SELECT id, vault_id, path, title, summary, size_bytes, line_count, modified_at, risk_level \
-             FROM files ORDER BY modified_at DESC LIMIT 500"
-                .to_string(),
+
+    let mut where_clauses: Vec<String> = Vec::new();
+    if let Some(vid) = q.vault_id.as_deref() {
+        where_clauses.push(format!("vault_id = '{}'", vid.replace('\'', "''")));
+    }
+    if let Some(cat) = q.category.as_deref() {
+        where_clauses.push(format!("category_id = '{}'", cat.replace('\'', "''")));
+    }
+    let where_sql = if where_clauses.is_empty() {
+        String::new()
+    } else {
+        format!(" WHERE {}", where_clauses.join(" AND "))
     };
+
+    let sql = format!(
+        "SELECT id, vault_id, path, title, summary, size_bytes, line_count, modified_at, risk_level, category_id \
+         FROM files{where_sql} ORDER BY modified_at DESC LIMIT 500"
+    );
     let files = query_files(&conn, &sql, [])?;
     Ok(Json(json!(files)))
 }
@@ -124,7 +132,7 @@ async fn search(
         .unwrap_or_default();
     let sql = format!(
         "SELECT f.id, f.vault_id, f.path, f.title, f.summary, \
-                f.size_bytes, f.line_count, f.modified_at, f.risk_level \
+                f.size_bytes, f.line_count, f.modified_at, f.risk_level, f.category_id \
          FROM files f JOIN files_fts fts ON f.rowid = fts.rowid \
          WHERE fts MATCH ?1{vault_clause} ORDER BY rank LIMIT 50"
     );
@@ -171,6 +179,7 @@ fn file_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Value> {
         "line_count":  row.get::<_, i64>(6)?,
         "modified_at": row.get::<_, String>(7)?,
         "risk_level":  row.get::<_, Option<String>>(8)?,
+        "category_id": row.get::<_, Option<String>>(9)?,
     }))
 }
 

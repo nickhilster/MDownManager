@@ -50,6 +50,9 @@ export interface GitCommit {
 export const addVault = (path: string, name: string) =>
   invoke<VaultRecord>("add_vault", { path, name });
 
+export const importGithubRepo = (url: string, name?: string) =>
+  invoke<VaultRecord>("import_github_repo", { url, name: name ?? null });
+
 export const listVaults = () => invoke<VaultRecord[]>("list_vaults");
 
 export const listFiles = (vaultId: string) =>

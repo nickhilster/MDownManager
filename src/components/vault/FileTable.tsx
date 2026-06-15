@@ -12,6 +12,7 @@ import { ExternalLink, GitBranch, Trash2, ChevronUp, ChevronDown } from "lucide-
 import { FileRecord } from "@/lib/tauri";
 import { formatBytes, formatDate, relativePath } from "@/lib/utils";
 import { RiskBadge } from "./RiskBadge";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,16 @@ interface FileTableProps {
   onSelect: (file: FileRecord) => void;
   onRemove: (file: FileRecord) => void;
   selectedId: string | null;
+}
+
+function SkillBadge({ frontmatter }: { frontmatter: string | null }) {
+  const fm = frontmatter ?? "";
+  const valid = /^name\s*:/m.test(fm) && /^description\s*:/m.test(fm);
+  return (
+    <Badge variant={valid ? "skill-valid" : "skill"} className="shrink-0 py-0 text-[10px]">
+      {valid ? "✓ Skill" : "Skill"}
+    </Badge>
+  );
 }
 
 export function FileTable({
@@ -45,9 +56,14 @@ export function FileTable({
       header: "Title",
       cell: (info) => (
         <div className="min-w-0">
-          <span className="font-medium text-[var(--color-text-primary)] truncate block max-w-xs">
-            {info.getValue() ?? info.row.original.path.split(/[/\\]/).pop()}
-          </span>
+          <div className="flex items-center gap-1.5 min-w-0">
+            {info.row.original.category_id === "skill" && (
+              <SkillBadge frontmatter={info.row.original.frontmatter} />
+            )}
+            <span className="font-medium text-[var(--color-text-primary)] truncate">
+              {info.getValue() ?? info.row.original.path.split(/[/\\]/).pop()}
+            </span>
+          </div>
           {info.row.original.summary && (
             <span className="text-xs text-[var(--color-text-muted)] truncate block max-w-xs mt-0.5 leading-snug">
               {info.row.original.summary}

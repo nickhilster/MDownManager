@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
-import { FolderPlus, RefreshCw, Search, Sparkles, Upload, X } from "lucide-react";
+import { FolderPlus, Globe, RefreshCw, Search, Sparkles, Upload, X } from "lucide-react";
 import {
   FileRecord,
   VaultRecord,
   addVault,
   importFiles,
+  importGithubRepo,
   listAllModels,
   listFiles,
   listVaults,
@@ -42,6 +43,8 @@ export function VaultPage() {
   const [models, setModels] = useState<string[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>(() => localStorage.getItem("ai_model") ?? "");
   const [summarizing, setSummarizing] = useState<SummarizeProgress | null>(null);
+  const [githubUrl, setGithubUrl] = useState("");
+  const [showGithubDialog, setShowGithubDialog] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
   const { width: panelWidth, onMouseDown: onResizeStart } = useResizable(380, 240, 700);
   const { license } = useLicense();
@@ -161,6 +164,30 @@ export function VaultPage() {
       toast(`Imported ${added.length} file${added.length !== 1 ? "s" : ""}`, "success");
     } catch (e) {
       toast(`Import failed: ${e}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImportGithub = async () => {
+    const url = githubUrl.trim();
+    if (!url) return;
+    setShowGithubDialog(false);
+    setGithubUrl("");
+    if (license.tier === "free" && vaults.length >= 1) {
+      toast("Free tier supports one vault. Upgrade to add more.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const vault = await importGithubRepo(url);
+      const [updated, f] = await Promise.all([listVaults(), listFiles(vault.id)]);
+      setVaults(updated);
+      setFiles(f);
+      setActiveVault(vault);
+      toast(`"${vault.name}" cloned — ${f.length} file${f.length !== 1 ? "s" : ""} indexed`, "success");
+    } catch (e) {
+      toast(`GitHub import failed: ${e}`);
     } finally {
       setLoading(false);
     }
@@ -294,6 +321,36 @@ export function VaultPage() {
           <Upload size={14} />
           Import
         </Button>
+
+        <div className="relative">
+          <Button size="sm" variant="ghost" onClick={() => setShowGithubDialog((v) => !v)}>
+            <Globe size={14} />
+            GitHub
+          </Button>
+          {showGithubDialog && (
+            <div className="absolute left-0 top-full mt-1 z-50 w-72 bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-lg shadow-xl p-3 flex flex-col gap-2">
+              <p className="text-xs font-medium text-[var(--color-text-secondary)]">Clone a GitHub repo as vault</p>
+              <Input
+                autoFocus
+                placeholder="https://github.com/owner/repo"
+                value={githubUrl}
+                onChange={(e) => setGithubUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleImportGithub();
+                  if (e.key === "Escape") { setShowGithubDialog(false); setGithubUrl(""); }
+                }}
+              />
+              <div className="flex gap-2 justify-end">
+                <Button size="sm" variant="ghost" onClick={() => { setShowGithubDialog(false); setGithubUrl(""); }}>
+                  Cancel
+                </Button>
+                <Button size="sm" variant="primary" onClick={handleImportGithub} disabled={!githubUrl.trim()}>
+                  Clone
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="flex-1" />
 

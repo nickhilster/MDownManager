@@ -137,6 +137,7 @@ pub fn default_rules() -> Vec<DbRule> {
         ("bearer_token",           "Bearer token in header",                     "high",     r#"(?i)authorization\s*:\s*Bearer\s+[a-zA-Z0-9\-_./+=]{20,}"#),
         ("generic_api_key",        "Generic API key value",                      "medium",   r#"(?i)api[_\-]?key\s*[=:]\s*[a-zA-Z0-9\-_]{20,}"#),
         ("email_address",          "Email address",                              "low",      r#"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"#),
+        ("skill_dangerous_tools",  "Skill requests high-privilege tool access",  "high",     r#"(?i)allowed-tools\s*:.*\b(bash|shell|execute|run_command|write_file|delete_file|system|subprocess|eval)\b"#),
     ];
 
     raw.iter()
