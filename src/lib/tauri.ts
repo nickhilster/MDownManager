@@ -98,6 +98,23 @@ export const gitFileAtCommit = (gitRoot: string, filePath: string, commitHash: s
 export const gitFindRoot = (path: string) =>
   invoke<string | null>("git_find_root", { path });
 
+// ── Semantic search ───────────────────────────────────────────────────────────
+
+export const listEmbeddingModels = () => invoke<string[]>("list_embedding_models");
+
+export const embedFile = (fileId: string, model: string) =>
+  invoke<void>("embed_file", { fileId, model });
+
+export const embedVault = (vaultId: string, model: string) =>
+  invoke<number>("embed_vault", { vaultId, model });
+
+export const searchSemantic = (
+  vaultId: string,
+  query: string,
+  model: string,
+  limit = 20
+) => invoke<FileRecord[]>("search_semantic", { vaultId, query, model, limit });
+
 // ── Ollama / AI commands ──────────────────────────────────────────────────────
 
 export const ollamaHealth = () => invoke<boolean>("ollama_health");

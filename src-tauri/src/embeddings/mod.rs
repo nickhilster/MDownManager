@@ -104,6 +104,103 @@ pub async fn embed(text: &str) -> Result<Vec<f32>> {
         .ok_or_else(|| anyhow!("Ollama returned empty embeddings"))
 }
 
+const EMBED_CONTENT_LIMIT: usize = 8_000;
+
+/// Truncates content to ~8k chars for embedding. Falls back to summary if content is empty.
+pub fn prepare_embed_text(content: &str, summary: Option<&str>) -> String {
+    let trimmed = content.trim();
+    if trimmed.is_empty() {
+        return summary.unwrap_or("").to_string();
+    }
+    trimmed.chars().take(EMBED_CONTENT_LIMIT).collect()
+}
+
+/// Returns static list of supported embedding models.
+/// Ollama models are always included; OpenAI models only if a key is configured.
+pub fn list_embedding_models(openai_key: bool) -> Vec<String> {
+    let mut models = vec![
+        "ollama/nomic-embed-text".to_string(),
+        "ollama/mxbai-embed-large".to_string(),
+    ];
+    if openai_key {
+        models.push("openai/text-embedding-3-small".to_string());
+        models.push("openai/text-embedding-3-large".to_string());
+    }
+    models
+}
+
+/// Generate an embedding vector for the given text using a namespaced model id.
+/// `api_key` is required for OpenAI; ignored for Ollama.
+pub async fn generate_embedding(text: &str, model: &str, api_key: Option<&str>) -> Result<Vec<f32>> {
+    let (provider, model_name) = split_model(model);
+    match provider {
+        "ollama" => embed_ollama(text, model_name).await,
+        "openai" => {
+            embed_openai(
+                text,
+                model_name,
+                api_key.ok_or_else(|| anyhow!("Missing OpenAI key"))?,
+            )
+            .await
+        }
+        other => Err(anyhow!("Embedding provider '{other}' is not supported")),
+    }
+}
+
+async fn embed_ollama(text: &str, model: &str) -> Result<Vec<f32>> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(60))
+        .build()?;
+    let resp: EmbedResponse = client
+        .post(format!("{OLLAMA_BASE}/api/embed"))
+        .json(&EmbedRequest { model, input: text })
+        .send()
+        .await?
+        .error_for_status()?
+        .json()
+        .await?;
+    resp.embeddings
+        .into_iter()
+        .next()
+        .ok_or_else(|| anyhow!("Ollama returned empty embeddings"))
+}
+
+#[derive(Serialize)]
+struct OpenAIEmbedRequest<'a> {
+    model: &'a str,
+    input: &'a str,
+}
+
+#[derive(Deserialize)]
+struct OpenAIEmbedResponse {
+    data: Vec<OpenAIEmbedData>,
+}
+
+#[derive(Deserialize)]
+struct OpenAIEmbedData {
+    embedding: Vec<f32>,
+}
+
+async fn embed_openai(text: &str, model: &str, api_key: &str) -> Result<Vec<f32>> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(30))
+        .build()?;
+    let resp: OpenAIEmbedResponse = client
+        .post("https://api.openai.com/v1/embeddings")
+        .bearer_auth(api_key)
+        .json(&OpenAIEmbedRequest { model, input: text })
+        .send()
+        .await?
+        .error_for_status()?
+        .json()
+        .await?;
+    resp.data
+        .into_iter()
+        .next()
+        .map(|d| d.embedding)
+        .ok_or_else(|| anyhow!("OpenAI returned empty embeddings"))
+}
+
 // ── Ollama generation ─────────────────────────────────────────────────────────
 
 #[derive(Serialize)]

@@ -105,5 +105,17 @@ pub fn run(conn: &Connection) -> Result<()> {
         )?;
     }
 
+    if version < 5 {
+        conn.execute_batch(
+            "CREATE TABLE IF NOT EXISTS embeddings (
+                file_id    TEXT PRIMARY KEY REFERENCES files(id) ON DELETE CASCADE,
+                model      TEXT NOT NULL,
+                vector     BLOB NOT NULL,
+                updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+             );
+             INSERT INTO schema_version (version) VALUES (5);",
+        )?;
+    }
+
     Ok(())
 }

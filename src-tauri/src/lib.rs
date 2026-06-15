@@ -14,6 +14,7 @@ use commands::{
     git::{git_file_at_commit, git_file_history, git_find_root},
     help::{get_tour_state, set_tour_seen, set_tour_step},
     license::{activate_license, deactivate_license, get_license},
+    semantic::{embed_file, embed_vault, list_embedding_models, search_semantic},
     vault::{
         add_vault, get_file_content, get_snapshot_content, import_files, import_github_repo,
         list_files, list_snapshots, list_vaults, open_file_in_editor, refresh_vault,
@@ -80,6 +81,11 @@ pub fn run() {
             // embeddings
             ollama_health,
             embed_text,
+            // semantic search
+            list_embedding_models,
+            embed_file,
+            embed_vault,
+            search_semantic,
             // ai / summaries
             list_ollama_models,
             list_all_models,

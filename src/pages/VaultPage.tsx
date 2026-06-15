@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
-import { FolderPlus, Globe, RefreshCw, Search, Sparkles, Upload, X } from "lucide-react";
+import { Brain, FolderPlus, Globe, RefreshCw, Search, Sparkles, Upload, X } from "lucide-react";
 import {
   FileRecord,
   VaultRecord,
   addVault,
+  embedVault,
   importFiles,
   importGithubRepo,
   listAllModels,
+  listEmbeddingModels,
   listFiles,
   listVaults,
   openFileInEditor,
@@ -16,6 +18,7 @@ import {
   removeFile,
   removeVault,
   searchFiles,
+  searchSemantic,
   summarizeVault,
 } from "@/lib/tauri";
 import { Button } from "@/components/ui/Button";
@@ -43,6 +46,12 @@ export function VaultPage() {
   const [models, setModels] = useState<string[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>(() => localStorage.getItem("ai_model") ?? "");
   const [summarizing, setSummarizing] = useState<SummarizeProgress | null>(null);
+  const [embeddingModels, setEmbeddingModels] = useState<string[]>([]);
+  const [embeddingModel, setEmbeddingModel] = useState<string>(
+    () => localStorage.getItem("embed_model") ?? "ollama/nomic-embed-text"
+  );
+  const [embedding, setEmbedding] = useState<SummarizeProgress | null>(null);
+  const [searchMode, setSearchMode] = useState<"keyword" | "semantic">("keyword");
   const [githubUrl, setGithubUrl] = useState("");
   const [showGithubDialog, setShowGithubDialog] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
@@ -66,6 +75,10 @@ export function VaultPage() {
         }
       })
       .catch(() => {}); // Ollama might be offline — silently ignore
+
+    listEmbeddingModels()
+      .then(setEmbeddingModels)
+      .catch(() => {});
   }, []);
 
   // Load files when vault changes
@@ -225,6 +238,28 @@ export function VaultPage() {
     }
   };
 
+  // ── Embed ────────────────────────────────────────────────────────────────
+
+  const handleEmbed = async () => {
+    if (!activeVault || !embeddingModel) return;
+    setEmbedding({ done: 0, total: 0 });
+
+    const unlisten = await listen<{ done: number; total: number }>(
+      "embed-progress",
+      (e) => setEmbedding({ done: e.payload.done, total: e.payload.total })
+    );
+
+    try {
+      const count = await embedVault(activeVault.id, embeddingModel);
+      toast(`${count} file${count !== 1 ? "s" : ""} embedded`, "success");
+    } catch (e) {
+      toast(`Embedding failed: ${e}`);
+    } finally {
+      unlisten();
+      setEmbedding(null);
+    }
+  };
+
   // ── Search ───────────────────────────────────────────────────────────────
 
   const handleSearch = useCallback(
@@ -233,6 +268,9 @@ export function VaultPage() {
       try {
         if (!q.trim()) {
           await loadFiles(activeVault.id);
+        } else if (searchMode === "semantic") {
+          const results = await searchSemantic(activeVault.id, q, embeddingModel);
+          setFiles(results);
         } else {
           const results = await searchFiles(activeVault.id, q);
           setFiles(results);
@@ -241,7 +279,7 @@ export function VaultPage() {
         toast(`Search failed: ${e}`);
       }
     },
-    [activeVault]
+    [activeVault, searchMode, embeddingModel]
   );
 
   useEffect(() => {
@@ -382,14 +420,69 @@ export function VaultPage() {
           </div>
         )}
 
-        <div className="relative w-52">
-          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] pointer-events-none" />
-          <Input
-            className="pl-8"
-            placeholder="Search files…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        {/* Semantic Embed */}
+        {embeddingModels.length > 0 && (
+          <div className="flex items-center gap-1.5">
+            <ModelSelect
+              models={embeddingModels}
+              value={embeddingModel}
+              onChange={(v) => {
+                setEmbeddingModel(v);
+                localStorage.setItem("embed_model", v);
+              }}
+            />
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleEmbed}
+              disabled={!activeVault || !!embedding}
+              title="Generate semantic embeddings for all un-embedded files"
+            >
+              <Brain size={13} className={embedding ? "animate-pulse text-[var(--color-accent)]" : ""} />
+              {embedding
+                ? embedding.total > 0
+                  ? `${embedding.done}/${embedding.total}`
+                  : "Starting…"
+                : "Embed"}
+            </Button>
+          </div>
+        )}
+
+        <div className="flex items-center">
+          {/* Search mode toggle */}
+          <div className="flex rounded overflow-hidden border border-[var(--color-border-subtle)] mr-1.5">
+            <button
+              onClick={() => setSearchMode("keyword")}
+              className={cn(
+                "px-2 py-1 text-[10px] transition-colors",
+                searchMode === "keyword"
+                  ? "bg-[var(--color-accent-bg)] text-[var(--color-accent)]"
+                  : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
+              )}
+            >
+              Keyword
+            </button>
+            <button
+              onClick={() => setSearchMode("semantic")}
+              className={cn(
+                "px-2 py-1 text-[10px] transition-colors",
+                searchMode === "semantic"
+                  ? "bg-[var(--color-accent-bg)] text-[var(--color-accent)]"
+                  : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
+              )}
+            >
+              Semantic
+            </button>
+          </div>
+          <div className="relative w-52">
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] pointer-events-none" />
+            <Input
+              className="pl-8"
+              placeholder={searchMode === "semantic" ? "Semantic search…" : "Search files…"}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
         </div>
 
         <Button
@@ -403,12 +496,20 @@ export function VaultPage() {
         </Button>
       </div>
 
-      {/* Progress bar */}
+      {/* Progress bars */}
       {summarizing && summarizing.total > 0 && (
         <div className="h-0.5 bg-[var(--color-surface-2)] shrink-0">
           <div
             className="h-full bg-[var(--color-accent)] transition-all duration-300"
             style={{ width: `${(summarizing.done / summarizing.total) * 100}%` }}
+          />
+        </div>
+      )}
+      {embedding && embedding.total > 0 && (
+        <div className="h-0.5 bg-[var(--color-surface-2)] shrink-0">
+          <div
+            className="h-full bg-emerald-500 transition-all duration-300"
+            style={{ width: `${(embedding.done / embedding.total) * 100}%` }}
           />
         </div>
       )}

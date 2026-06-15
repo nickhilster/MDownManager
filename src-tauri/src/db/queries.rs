@@ -347,6 +347,88 @@ pub fn seed_rules_if_empty(conn: &Connection, rules: Vec<DbRule>) -> Result<()> 
     Ok(())
 }
 
+// ── Embeddings ────────────────────────────────────────────────────────────────
+
+fn vec_to_blob(v: &[f32]) -> Vec<u8> {
+    v.iter().flat_map(|f| f.to_le_bytes()).collect()
+}
+
+fn blob_to_vec(b: &[u8]) -> Vec<f32> {
+    b.chunks_exact(4)
+        .map(|c| f32::from_le_bytes(c.try_into().unwrap()))
+        .collect()
+}
+
+pub fn store_embedding(conn: &Connection, file_id: &str, model: &str, vector: &[f32]) -> Result<()> {
+    let blob = vec_to_blob(vector);
+    conn.execute(
+        "INSERT INTO embeddings (file_id, model, vector, updated_at)
+         VALUES (?1, ?2, ?3, datetime('now'))
+         ON CONFLICT(file_id) DO UPDATE SET
+             model = excluded.model,
+             vector = excluded.vector,
+             updated_at = excluded.updated_at",
+        params![file_id, model, blob],
+    )?;
+    Ok(())
+}
+
+/// Returns (file_id, path, summary) for files in vault without an embedding row.
+pub fn list_files_without_embedding(
+    conn: &Connection,
+    vault_id: &str,
+) -> Result<Vec<(String, String, Option<String>)>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, path, summary FROM files
+         WHERE vault_id = ?1
+         AND id NOT IN (SELECT file_id FROM embeddings)
+         ORDER BY path",
+    )?;
+    let rows = stmt.query_map(params![vault_id], |row| {
+        Ok((
+            row.get::<_, String>(0)?,
+            row.get::<_, String>(1)?,
+            row.get::<_, Option<String>>(2)?,
+        ))
+    })?;
+    Ok(rows.filter_map(|r| r.ok()).collect())
+}
+
+/// Returns (file_id, vector) pairs for all embedded files in a vault matching the given model.
+pub fn list_embeddings_for_vault(
+    conn: &Connection,
+    vault_id: &str,
+    model: &str,
+) -> Result<Vec<(String, Vec<f32>)>> {
+    let mut stmt = conn.prepare(
+        "SELECT e.file_id, e.vector FROM embeddings e
+         JOIN files f ON f.id = e.file_id
+         WHERE f.vault_id = ?1 AND e.model = ?2",
+    )?;
+    let rows = stmt.query_map(params![vault_id, model], |row| {
+        let file_id: String = row.get(0)?;
+        let blob: Vec<u8> = row.get(1)?;
+        Ok((file_id, blob))
+    })?;
+    Ok(rows
+        .filter_map(|r| r.ok())
+        .map(|(id, blob)| (id, blob_to_vec(&blob)))
+        .collect())
+}
+
+pub fn get_files_by_ids(conn: &Connection, ids: &[String]) -> Result<Vec<FileRecord>> {
+    if ids.is_empty() {
+        return Ok(vec![]);
+    }
+    let placeholders = (0..ids.len()).map(|_| "?").collect::<Vec<_>>().join(",");
+    let sql = format!("SELECT {FILE_COLS} FROM files WHERE id IN ({placeholders})");
+    let mut stmt = conn.prepare(&sql)?;
+    let rows = stmt.query_map(rusqlite::params_from_iter(ids.iter()), row_to_file)?;
+    rows.collect::<rusqlite::Result<Vec<_>>>().map_err(Into::into)
+}
+
+// ── Scanner rules ─────────────────────────────────────────────────────────────
+
 /// Inserts any default rules that don't yet exist (safe to call on every startup).
 /// Does NOT overwrite existing rules so user enable/disable choices are preserved.
 pub fn insert_missing_rules(conn: &Connection, rules: Vec<DbRule>) -> Result<u32> {
