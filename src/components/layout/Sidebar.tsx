@@ -5,7 +5,7 @@ import { Page } from "@/App";
 const navItems: { icon: React.ElementType; label: string; id: string; page?: Page }[] = [
   { icon: LayoutDashboard, label: "Vault",      id: "vault",      page: "vault" },
   { icon: Shield,          label: "Scanner",    id: "scanner",    page: "scanner" },
-  { icon: Layers,          label: "Explorer",   id: "explorer" },             // coming soon
+  { icon: Layers,          label: "Explorer",   id: "explorer",   page: "explorer" as const },
   { icon: Tag,             label: "Categories", id: "categories", page: "categories" as const },
 ];
 
