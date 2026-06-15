@@ -1,6 +1,6 @@
 [package]
 name = "mdownmanager"
-version = "0.1.0"
+version = "0.2.0"
 description = "MDownManager — Local-first Markdown knowledge base with semantic search, AI summaries, and security scanning"
 authors = ["Teambotics Inc."]
 edition = "2021"
