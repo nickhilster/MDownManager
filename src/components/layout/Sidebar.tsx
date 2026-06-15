@@ -5,8 +5,8 @@ import { Page } from "@/App";
 const navItems: { icon: React.ElementType; label: string; id: string; page?: Page }[] = [
   { icon: LayoutDashboard, label: "Vault",      id: "vault",      page: "vault" },
   { icon: Shield,          label: "Scanner",    id: "scanner",    page: "scanner" },
-  { icon: Layers,          label: "Explorer",   id: "explorer" },   // coming soon
-  { icon: Tag,             label: "Categories", id: "categories" }, // coming soon
+  { icon: Layers,          label: "Explorer",   id: "explorer" },             // coming soon
+  { icon: Tag,             label: "Categories", id: "categories", page: "categories" as const },
 ];
 
 interface SidebarProps {
@@ -19,8 +19,8 @@ export function Sidebar({ activePage, onNavigate, onOpenHelp }: SidebarProps) {
   return (
     <aside className="w-14 flex flex-col items-center py-4 bg-[var(--color-surface)] border-r border-[var(--color-border-subtle)] shrink-0">
       {/* Logo mark */}
-      <div data-tour-target="sidebar-logo" className="w-8 h-8 rounded bg-[var(--color-accent)] flex items-center justify-center mb-4">
-        <span className="text-white font-bold text-xs">M</span>
+      <div data-tour-target="sidebar-logo" className="w-8 h-8 rounded overflow-hidden mb-4 shrink-0">
+        <img src="/icon.png" alt="MDownManager" className="w-full h-full object-cover" />
       </div>
 
       {/* Main nav */}

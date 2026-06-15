@@ -40,6 +40,15 @@ pub struct Snapshot {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CategoryRecord {
+    pub id: String,
+    pub name: String,
+    pub source: String, // "ai" | "manual" | "indexer"
+    pub vault_id: String,
+    pub file_count: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GitCommit {
     pub hash: String,
     pub message: String,

@@ -2,7 +2,7 @@ use anyhow::Result;
 use rusqlite::{params, Connection};
 use uuid::Uuid;
 
-use crate::vault::types::{FileRecord, VaultRecord};
+use crate::vault::types::{CategoryRecord, FileRecord, VaultRecord};
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -345,6 +345,109 @@ pub fn seed_rules_if_empty(conn: &Connection, rules: Vec<DbRule>) -> Result<()> 
         upsert_rule(conn, &rule)?;
     }
     Ok(())
+}
+
+// ── Category queries ──────────────────────────────────────────────────────────
+
+/// Returns all known categories for a vault — registered ones from the categories
+/// table plus any ad-hoc category_id values on files (e.g. "skill" set by indexer).
+pub fn list_categories_with_counts(conn: &Connection, vault_id: &str) -> Result<Vec<CategoryRecord>> {
+    let mut stmt = conn.prepare(
+        "SELECT c.id, c.name, c.source, c.vault_id,
+                COUNT(f.id) AS file_count
+         FROM categories c
+         LEFT JOIN files f ON f.category_id = c.id AND f.vault_id = c.vault_id
+         WHERE c.vault_id = ?1
+         GROUP BY c.id
+         UNION ALL
+         SELECT DISTINCT
+                f.category_id AS id,
+                f.category_id AS name,
+                'indexer'     AS source,
+                f.vault_id,
+                COUNT(*)      AS file_count
+         FROM files f
+         WHERE f.vault_id = ?1
+           AND f.category_id IS NOT NULL
+           AND f.category_id NOT IN (SELECT id FROM categories WHERE vault_id = ?1)
+         GROUP BY f.category_id
+         ORDER BY source ASC, name ASC",
+    )?;
+    let rows = stmt.query_map(params![vault_id], |row| {
+        Ok(CategoryRecord {
+            id: row.get(0)?,
+            name: row.get(1)?,
+            source: row.get(2)?,
+            vault_id: row.get(3)?,
+            file_count: row.get(4)?,
+        })
+    })?;
+    rows.collect::<rusqlite::Result<Vec<_>>>().map_err(Into::into)
+}
+
+pub fn create_category(conn: &Connection, vault_id: &str, name: &str) -> Result<CategoryRecord> {
+    let id = uuid::Uuid::new_v4().to_string();
+    conn.execute(
+        "INSERT INTO categories (id, name, source, vault_id) VALUES (?1, ?2, 'manual', ?3)",
+        params![id, name, vault_id],
+    )?;
+    Ok(CategoryRecord {
+        id,
+        name: name.to_string(),
+        source: "manual".to_string(),
+        vault_id: vault_id.to_string(),
+        file_count: 0,
+    })
+}
+
+pub fn rename_category(conn: &Connection, id: &str, name: &str) -> Result<()> {
+    conn.execute(
+        "UPDATE categories SET name = ?1 WHERE id = ?2",
+        params![name, id],
+    )?;
+    Ok(())
+}
+
+pub fn delete_category(conn: &Connection, id: &str) -> Result<()> {
+    // Clear the category from all files that reference it
+    conn.execute(
+        "UPDATE files SET category_id = NULL, category_source = NULL WHERE category_id = ?1",
+        params![id],
+    )?;
+    conn.execute("DELETE FROM categories WHERE id = ?1", params![id])?;
+    Ok(())
+}
+
+pub fn assign_file_category(
+    conn: &Connection,
+    file_id: &str,
+    category_id: Option<&str>,
+) -> Result<()> {
+    match category_id {
+        Some(cid) => conn.execute(
+            "UPDATE files SET category_id = ?1, category_source = 'manual' WHERE id = ?2",
+            params![cid, file_id],
+        )?,
+        None => conn.execute(
+            "UPDATE files SET category_id = NULL, category_source = NULL WHERE id = ?1",
+            params![file_id],
+        )?,
+    };
+    Ok(())
+}
+
+pub fn list_files_by_category(
+    conn: &Connection,
+    vault_id: &str,
+    category_id: &str,
+) -> Result<Vec<FileRecord>> {
+    let mut stmt = conn.prepare(&format!(
+        "SELECT {FILE_COLS} FROM files
+         WHERE vault_id = ?1 AND category_id = ?2
+         ORDER BY modified_at DESC"
+    ))?;
+    let rows = stmt.query_map(params![vault_id, category_id], row_to_file)?;
+    rows.collect::<rusqlite::Result<Vec<_>>>().map_err(Into::into)
 }
 
 // ── Embeddings ────────────────────────────────────────────────────────────────

@@ -3,6 +3,7 @@ import { Shell } from "@/components/layout/Shell";
 import { SplashScreen } from "@/components/layout/SplashScreen";
 import { VaultPage } from "@/pages/VaultPage";
 import { ScannerPage } from "@/pages/ScannerPage";
+import { CategoriesPage } from "@/pages/CategoriesPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { HelpPage } from "@/pages/HelpPage";
 import { LicenseProvider, useLicense } from "@/lib/licenseContext";
@@ -10,7 +11,7 @@ import { splashStripLabel } from "@/lib/license";
 import { useTour } from "@/hooks/useTour";
 import { TourOverlay } from "@/components/help/TourOverlay";
 
-export type Page = "vault" | "scanner" | "settings" | "help";
+export type Page = "vault" | "scanner" | "categories" | "settings" | "help";
 
 function AppInner() {
   const [page, setPage] = useState<Page>("vault");
@@ -49,6 +50,8 @@ function AppInner() {
           <VaultPage />
         ) : page === "scanner" ? (
           <ScannerPage />
+        ) : page === "categories" ? (
+          <CategoriesPage />
         ) : page === "help" ? (
           <HelpPage onStartTour={() => { tour.start(); setPage("vault"); }} />
         ) : (

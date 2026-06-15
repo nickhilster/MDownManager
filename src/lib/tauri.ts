@@ -115,6 +115,34 @@ export const searchSemantic = (
   limit = 20
 ) => invoke<FileRecord[]>("search_semantic", { vaultId, query, model, limit });
 
+// ── Categories ────────────────────────────────────────────────────────────────
+
+export interface CategoryRecord {
+  id: string;
+  name: string;
+  source: "ai" | "manual" | "indexer";
+  vault_id: string;
+  file_count: number;
+}
+
+export const listCategories = (vaultId: string) =>
+  invoke<CategoryRecord[]>("list_categories", { vaultId });
+
+export const createCategory = (vaultId: string, name: string) =>
+  invoke<CategoryRecord>("create_category", { vaultId, name });
+
+export const renameCategory = (id: string, name: string) =>
+  invoke<void>("rename_category", { id, name });
+
+export const deleteCategory = (id: string) =>
+  invoke<void>("delete_category", { id });
+
+export const assignFileCategory = (fileId: string, categoryId: string | null) =>
+  invoke<void>("assign_file_category", { fileId, categoryId });
+
+export const listFilesByCategory = (vaultId: string, categoryId: string) =>
+  invoke<FileRecord[]>("list_files_by_category", { vaultId, categoryId });
+
 // ── Ollama / AI commands ──────────────────────────────────────────────────────
 
 export const ollamaHealth = () => invoke<boolean>("ollama_health");

@@ -1,4 +1,5 @@
 pub mod ai;
+pub mod categories;
 pub mod embeddings;
 pub mod git;
 pub mod help;

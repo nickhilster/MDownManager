@@ -9,9 +9,11 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
-import { FileRecord, GitCommit, Snapshot } from "@/lib/tauri";
+import { CategoryRecord, FileRecord, GitCommit, Snapshot } from "@/lib/tauri";
 import {
+  assignFileCategory,
   getFileContent,
+  listCategories,
   listSnapshots,
   gitFileHistory,
   openFileInEditor,
@@ -24,15 +26,18 @@ interface FileDetailPanelProps {
   file: FileRecord;
   onClose: () => void;
   onRemove?: (file: FileRecord) => void;
+  onCategoryChange?: (fileId: string, categoryId: string | null) => void;
   width?: number;
 }
 
-export function FileDetailPanel({ file, onClose, onRemove, width }: FileDetailPanelProps) {
+export function FileDetailPanel({ file, onClose, onRemove, onCategoryChange, width }: FileDetailPanelProps) {
   const [content, setContent] = useState<string | null>(null);
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [gitHistory, setGitHistory] = useState<GitCommit[]>([]);
   const [showGit, setShowGit] = useState(false);
   const [showSnapshots, setShowSnapshots] = useState(false);
+  const [categories, setCategories] = useState<CategoryRecord[]>([]);
+  const [assigningCategory, setAssigningCategory] = useState(false);
 
   useEffect(() => {
     setContent(null);
@@ -42,6 +47,22 @@ export function FileDetailPanel({ file, onClose, onRemove, width }: FileDetailPa
     getFileContent(file.path).then(setContent).catch(() => setContent(null));
     listSnapshots(file.id).then(setSnapshots).catch(() => setSnapshots([]));
   }, [file.id]);
+
+  useEffect(() => {
+    listCategories(file.vault_id).then(setCategories).catch(() => {});
+  }, [file.vault_id]);
+
+  const handleAssignCategory = async (categoryId: string | null) => {
+    setAssigningCategory(true);
+    try {
+      await assignFileCategory(file.id, categoryId);
+      onCategoryChange?.(file.id, categoryId);
+    } catch {
+      // silently ignore
+    } finally {
+      setAssigningCategory(false);
+    }
+  };
 
   const loadGitHistory = async () => {
     if (!file.git_root_hint) return;
@@ -84,6 +105,19 @@ export function FileDetailPanel({ file, onClose, onRemove, width }: FileDetailPa
           <Row label="Risk">
             <RiskBadge risk={file.risk_level} />
             {!file.risk_level && <span className="text-xs text-[var(--color-text-muted)]">Not scanned</span>}
+          </Row>
+          <Row label="Category">
+            <select
+              value={file.category_id ?? ""}
+              disabled={assigningCategory}
+              onChange={(e) => handleAssignCategory(e.target.value || null)}
+              className="text-xs bg-[var(--color-surface-2)] border border-[var(--color-border-subtle)] rounded px-1.5 py-0.5 text-[var(--color-text-secondary)] outline-none focus:border-[var(--color-accent)] disabled:opacity-50"
+            >
+              <option value="">— none —</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
           </Row>
           <Row label="Size">
             <span className="text-xs text-[var(--color-text-secondary)]">
