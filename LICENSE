@@ -1,0 +1,41 @@
+MIT License with Commons Clause 1.0
+
+Copyright (c) 2024 Teambotics
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+Commons Clause 1.0
+
+The Licensor covenants that, subject to the conditions of this License,
+it will not enforce any of its rights related to the Work against You
+for the purpose of the Work.
+
+Use of the Work is limited to:
+
+1. Non-commercial purposes: Personal use, internal company use, 
+   open-source development, educational purposes, or research.
+
+2. Commercial purposes require a separate commercial license agreement 
+   with Teambotics. Commercial use includes:
+   - Building a commercial product or service
+   - Offering MdownManager as a SaaS or managed service
+   - Using MdownManager as a component in a commercial product
+   - Any monetization of MdownManager or its derivatives
+
+For commercial licensing inquiries, contact: hello@teambotics.app
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
