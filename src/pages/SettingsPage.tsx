@@ -307,21 +307,23 @@ GET /files/<id>/content          — raw Markdown`}
         {license.tier === "free" ? (
           <div className="space-y-3">
             <p className="text-sm text-[var(--color-text-muted)]">
-              Running on the <strong className="text-[var(--color-text-secondary)]">Free</strong> tier.
-              The Local Agent API and auto-scan require a Commercial or Non-profit license.
+              Running on the <strong className="text-[var(--color-text-secondary)]">Free</strong> tier — limited to 1 vault.
+              Upgrade for unlimited vaults and priority support.
             </p>
-            <p className="text-xs text-[var(--color-text-muted)]">
-              Purchase at{" "}
-              <a href="https://teambotics.com/mdownmanager" target="_blank" rel="noopener noreferrer"
-                className="text-[var(--color-accent)] hover:underline">
-                teambotics.com/mdownmanager
-              </a>{" "}
-              · Non-profits apply at{" "}
-              <a href="https://teambotics.com/nonprofit" target="_blank" rel="noopener noreferrer"
-                className="text-[var(--color-accent)] hover:underline">
-                teambotics.com/nonprofit
+            <div className="flex flex-col gap-1.5">
+              <a href="https://teambotics.lemonsqueezy.com/buy/individual" target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--color-accent)] hover:underline">
+                Individual — $20 / year (unlimited vaults)
               </a>
-            </p>
+              <a href="https://teambotics.lemonsqueezy.com/buy/commercial" target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--color-accent)] hover:underline">
+                Commercial — $149 / year (up to 10 seats)
+              </a>
+              <a href="https://teambotics.app/nonprofit-application" target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs text-[var(--color-text-muted)] hover:underline">
+                Non-profit? Apply for free access →
+              </a>
+            </div>
             <div className="flex items-center gap-2">
               <input
                 type="text"
