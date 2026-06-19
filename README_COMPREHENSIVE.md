@@ -32,7 +32,7 @@ MdownManager turns scattered markdown into a **living knowledge system**:
 
 [Get v0.3.0 — Explorer](https://github.com/nickhilster/MDownManager/releases/tag/v0.3.0) (Latest)
 
-Windows 10+ | Python backend | Electron UI | MIT License
+Windows 10+ | Tauri + Rust | Elastic License 2.0
 
 ### 2. Install
 
@@ -375,7 +375,7 @@ MDownManager/
 ├── installer/
 │   └── mdownmanager.nsi   # NSIS installer config
 ├── requirements.txt
-├── LICENSE (MIT)
+├── LICENSE (Elastic License 2.0)
 └── README.md (this file)
 ```
 
@@ -406,7 +406,7 @@ MDownManager/
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
+Elastic License 2.0 -- free for personal and non-commercial use. See [LICENSE](LICENSE) for full terms, or contact hello@teambotics.app for commercial licensing.
 
 You're free to use, modify, and distribute MdownManager in personal and commercial projects.
 
