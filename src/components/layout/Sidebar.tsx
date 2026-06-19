@@ -5,17 +5,18 @@ import { Page } from "@/App";
 const navItems: { icon: React.ElementType; label: string; id: string; page?: Page }[] = [
   { icon: LayoutDashboard, label: "Vault",      id: "vault",      page: "vault" },
   { icon: Shield,          label: "Scanner",    id: "scanner",    page: "scanner" },
-  { icon: Layers,          label: "Explorer",   id: "explorer",   page: "explorer" as const },
   { icon: Tag,             label: "Categories", id: "categories", page: "categories" as const },
 ];
 
 interface SidebarProps {
   activePage: Page;
+  folderPanelOpen: boolean;
   onNavigate: (page: Page) => void;
   onOpenHelp: () => void;
+  onToggleFolderPanel: () => void;
 }
 
-export function Sidebar({ activePage, onNavigate, onOpenHelp }: SidebarProps) {
+export function Sidebar({ activePage, folderPanelOpen, onNavigate, onOpenHelp, onToggleFolderPanel }: SidebarProps) {
   return (
     <aside className="w-14 flex flex-col items-center py-4 bg-[var(--color-surface)] border-r border-[var(--color-border-subtle)] shrink-0">
       {/* Logo mark */}
@@ -29,11 +30,10 @@ export function Sidebar({ activePage, onNavigate, onOpenHelp }: SidebarProps) {
           <button
             key={id}
             data-tour-target={id === "scanner" ? "scanner-nav" : undefined}
-            title={page ? label : `${label} (coming soon)`}
+            title={label}
             onClick={() => page && onNavigate(page)}
             className={cn(
               "w-9 h-9 rounded flex items-center justify-center transition-colors",
-              !page && "opacity-40 cursor-not-allowed",
               activePage === id
                 ? "bg-[var(--color-accent)]/15 text-[var(--color-accent)]"
                 : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)]"
@@ -42,6 +42,20 @@ export function Sidebar({ activePage, onNavigate, onOpenHelp }: SidebarProps) {
             <Icon size={16} />
           </button>
         ))}
+
+        {/* Explorer — toggles the folder panel */}
+        <button
+          title={folderPanelOpen ? "Close Explorer" : "Explorer"}
+          onClick={onToggleFolderPanel}
+          className={cn(
+            "w-9 h-9 rounded flex items-center justify-center transition-colors",
+            folderPanelOpen
+              ? "bg-[var(--color-accent)]/15 text-[var(--color-accent)]"
+              : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)]"
+          )}
+        >
+          <Layers size={16} />
+        </button>
       </div>
 
       {/* Help and Settings pinned to bottom */}

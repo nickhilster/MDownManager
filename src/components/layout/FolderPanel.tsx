@@ -1,40 +1,28 @@
 import { useEffect, useState } from "react";
-import {
-  ChevronDown,
-  ChevronRight,
-  File,
-  Folder,
-  FolderOpen,
-  Layers,
-} from "lucide-react";
-import {
-  FileRecord,
-  VaultRecord,
-  listFiles,
-  listVaults,
-} from "@/lib/tauri";
+import { ChevronDown, ChevronRight, File, Folder, FolderOpen, X } from "lucide-react";
+import { FileRecord, VaultRecord, listFiles, listVaults } from "@/lib/tauri";
 import { FileDetailPanel } from "@/components/vault/FileDetailPanel";
 import { RiskBadge } from "@/components/vault/RiskBadge";
-import { cn } from "@/lib/utils";
 import { buildTree, DirNode, FileNode, TreeNode } from "@/lib/treeBuilder";
+import { cn } from "@/lib/utils";
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+interface FolderPanelProps {
+  onClose: () => void;
+}
 
-export function ExplorerPage() {
+export function FolderPanel({ onClose }: FolderPanelProps) {
   const [vaults, setVaults] = useState<VaultRecord[]>([]);
   const [activeVault, setActiveVault] = useState<VaultRecord | null>(null);
   const [files, setFiles] = useState<FileRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<FileRecord | null>(null);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [expanded, setExpanded] = useState<Set<string>>(new Set(["__root__"]));
 
   useEffect(() => {
-    listVaults()
-      .then((v) => {
-        setVaults(v);
-        if (v.length > 0) setActiveVault(v[0]);
-      })
-      .catch(() => {});
+    listVaults().then((v) => {
+      setVaults(v);
+      if (v.length > 0) setActiveVault(v[0]);
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -42,106 +30,103 @@ export function ExplorerPage() {
     setLoading(true);
     setSelected(null);
     listFiles(activeVault.id)
-      .then((f) => {
-        setFiles(f);
-        // Auto-expand root's direct children on first load
-        setExpanded(new Set(["__root__"]));
-      })
+      .then((f) => { setFiles(f); setExpanded(new Set(["__root__"])); })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [activeVault]);
 
   const tree = activeVault ? buildTree(files, activeVault.path) : null;
 
-  const toggleDir = (fullPath: string) => {
+  const toggleDir = (fullPath: string) =>
     setExpanded((prev) => {
       const next = new Set(prev);
       if (next.has(fullPath)) next.delete(fullPath);
       else next.add(fullPath);
       return next;
     });
-  };
-
-  const handleFileSelect = (file: FileRecord) => {
-    if (activeVault) file = { ...file, git_root_hint: activeVault.git_root ?? undefined } as FileRecord;
-    setSelected(file);
-  };
 
   return (
-    <div className="flex h-full overflow-hidden">
-      {/* Main tree area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <>
+      {/* Panel */}
+      <div className="w-52 shrink-0 flex flex-col border-r border-[var(--color-border-subtle)] bg-[var(--color-surface)] overflow-hidden">
         {/* Header */}
-        <div className="px-5 py-3 border-b border-[var(--color-border-subtle)] shrink-0 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Layers size={15} className="text-[var(--color-accent)]" />
-            <span className="text-sm font-semibold text-[var(--color-text-primary)]">Explorer</span>
+        <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--color-border-subtle)] shrink-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+              Explorer
+            </span>
             {activeVault && (
-              <span className="text-xs text-[var(--color-text-muted)]">
-                {files.length} file{files.length !== 1 ? "s" : ""}
+              <span className="text-[10px] text-[var(--color-text-muted)] tabular-nums">
+                ({files.length})
               </span>
             )}
           </div>
+          <button
+            onClick={onClose}
+            title="Close panel"
+            className="text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors"
+          >
+            <X size={13} />
+          </button>
+        </div>
 
-          {/* Vault selector */}
-          {vaults.length > 1 && (
+        {/* Vault selector */}
+        {vaults.length > 1 && (
+          <div className="px-2 py-1.5 border-b border-[var(--color-border-subtle)] shrink-0">
             <select
               value={activeVault?.id ?? ""}
               onChange={(e) => {
                 const v = vaults.find((v) => v.id === e.target.value);
                 if (v) setActiveVault(v);
               }}
-              className="text-xs bg-[var(--color-surface-2)] border border-[var(--color-border-subtle)] rounded px-2 py-1 text-[var(--color-text-secondary)] outline-none"
+              className="w-full text-[11px] bg-[var(--color-surface-2)] border border-[var(--color-border-subtle)] rounded px-1.5 py-1 text-[var(--color-text-secondary)] outline-none"
             >
               {vaults.map((v) => (
                 <option key={v.id} value={v.id}>{v.name}</option>
               ))}
             </select>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Tree */}
-        <div className="flex-1 overflow-auto py-2">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden py-1 min-h-0">
           {loading ? (
-            <div className="flex items-center justify-center h-32 text-xs text-[var(--color-text-muted)]">
-              Loading…
-            </div>
+            <p className="px-3 py-4 text-[11px] text-[var(--color-text-muted)]">Loading…</p>
           ) : !activeVault ? (
-            <div className="flex items-center justify-center h-32 text-xs text-[var(--color-text-muted)]">
-              No vault open
-            </div>
+            <p className="px-3 py-4 text-[11px] text-[var(--color-text-muted)]">No vault open</p>
           ) : !tree || tree.children.length === 0 ? (
-            <div className="flex items-center justify-center h-32 text-xs text-[var(--color-text-muted)]">
-              No files in vault
-            </div>
+            <p className="px-3 py-4 text-[11px] text-[var(--color-text-muted)]">No files</p>
           ) : (
-            <TreeChildren
+            <PanelTreeChildren
               nodes={tree.children}
               depth={0}
               expanded={expanded}
               selectedId={selected?.id ?? null}
               onToggleDir={toggleDir}
-              onSelectFile={handleFileSelect}
+              onSelectFile={(f) => {
+                if (activeVault) f = { ...f, git_root_hint: activeVault.git_root ?? undefined } as FileRecord;
+                setSelected(f);
+              }}
             />
           )}
         </div>
       </div>
 
-      {/* Detail panel */}
+      {/* File detail — rendered as a right-edge drawer over main content */}
       {selected && (
         <FileDetailPanel
           file={selected}
           onClose={() => setSelected(null)}
-          width={360}
+          width={340}
         />
       )}
-    </div>
+    </>
   );
 }
 
-// ── Tree rendering ────────────────────────────────────────────────────────────
+// ── Tree rendering ─────────────────────────────────────────────────────────────
 
-function TreeChildren({
+function PanelTreeChildren({
   nodes, depth, expanded, selectedId, onToggleDir, onSelectFile,
 }: {
   nodes: TreeNode[];
@@ -155,7 +140,7 @@ function TreeChildren({
     <>
       {nodes.map((node) =>
         node.type === "dir" ? (
-          <DirRow
+          <PanelDirRow
             key={node.fullPath}
             node={node}
             depth={depth}
@@ -165,7 +150,7 @@ function TreeChildren({
             onSelectFile={onSelectFile}
           />
         ) : (
-          <FileRow
+          <PanelFileRow
             key={node.file.id}
             node={node}
             depth={depth}
@@ -178,7 +163,7 @@ function TreeChildren({
   );
 }
 
-function DirRow({
+function PanelDirRow({
   node, depth, expanded, selectedId, onToggleDir, onSelectFile,
 }: {
   node: DirNode;
@@ -189,32 +174,31 @@ function DirRow({
   onSelectFile: (file: FileRecord) => void;
 }) {
   const isOpen = expanded.has(node.fullPath);
-
   return (
     <>
       <button
         onClick={() => onToggleDir(node.fullPath)}
-        className="w-full flex items-center gap-1.5 px-3 py-1 hover:bg-[var(--color-surface-2)] transition-colors text-left group"
-        style={{ paddingLeft: `${12 + depth * 16}px` }}
+        title={node.name}
+        className="w-full flex items-center gap-1 py-[3px] hover:bg-[var(--color-surface-2)] transition-colors text-left group"
+        style={{ paddingLeft: `${8 + depth * 12}px` }}
       >
         <span className="text-[var(--color-text-muted)] shrink-0">
-          {isOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+          {isOpen ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
         </span>
-        <span className="text-[var(--color-text-muted)] shrink-0">
+        <span className="shrink-0">
           {isOpen
-            ? <FolderOpen size={13} className="text-[var(--color-accent)]" />
-            : <Folder size={13} className="text-[var(--color-accent)]" />}
+            ? <FolderOpen size={11} className="text-[var(--color-accent)]" />
+            : <Folder size={11} className="text-[var(--color-accent)]" />}
         </span>
-        <span className="text-xs font-medium text-[var(--color-text-secondary)] truncate flex-1">
+        <span className="text-[11px] font-medium text-[var(--color-text-secondary)] truncate flex-1 ml-1">
           {node.name}
         </span>
         <span className="text-[10px] text-[var(--color-text-muted)] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity tabular-nums pr-2">
           {node.fileCount}
         </span>
       </button>
-
       {isOpen && (
-        <TreeChildren
+        <PanelTreeChildren
           nodes={node.children}
           depth={depth + 1}
           expanded={expanded}
@@ -227,7 +211,7 @@ function DirRow({
   );
 }
 
-function FileRow({
+function PanelFileRow({
   node, depth, selected, onSelect,
 }: {
   node: FileNode;
@@ -238,17 +222,17 @@ function FileRow({
   return (
     <button
       onClick={() => onSelect(node.file)}
+      title={node.name}
       className={cn(
-        "w-full flex items-center gap-1.5 px-3 py-1 transition-colors text-left",
+        "w-full flex items-center gap-1 py-[3px] transition-colors text-left",
         selected
           ? "bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
           : "hover:bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]"
       )}
-      style={{ paddingLeft: `${12 + depth * 16}px` }}
+      style={{ paddingLeft: `${8 + depth * 12 + 12}px` }}
     >
-      <span className="shrink-0 w-[13px]" />
-      <File size={12} className="shrink-0 text-[var(--color-text-muted)]" />
-      <span className="text-xs truncate flex-1">{node.name}</span>
+      <File size={11} className="shrink-0 text-[var(--color-text-muted)]" />
+      <span className="text-[11px] truncate flex-1 ml-1">{node.name}</span>
       {node.file.risk_level && node.file.risk_level !== "clean" && (
         <span className="shrink-0 pr-2">
           <RiskBadge risk={node.file.risk_level} />

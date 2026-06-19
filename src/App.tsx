@@ -17,13 +17,13 @@ export type Page = "vault" | "scanner" | "explorer" | "categories" | "settings" 
 function AppInner() {
   const [page, setPage] = useState<Page>("vault");
   const [showSplash, setShowSplash] = useState(true);
+  const [showFolderPanel, setShowFolderPanel] = useState(false);
   const { license, loading } = useLicense();
   const [splashDone, setSplashDone] = useState(false);
   const handleSplashDone = useCallback(() => setSplashDone(true), []);
 
   const tour = useTour();
 
-  // Navigate to the right page when the tour step requires it
   useEffect(() => {
     if (tour.active && tour.step) {
       setPage(tour.step.page);
@@ -44,8 +44,10 @@ function AppInner() {
       )}
       <Shell
         page={page}
+        showFolderPanel={showFolderPanel}
         onNavigate={setPage}
         onOpenHelp={() => setPage("help")}
+        onToggleFolderPanel={() => setShowFolderPanel((v) => !v)}
       >
         {page === "vault" ? (
           <VaultPage />
