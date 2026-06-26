@@ -35,3 +35,6 @@ src-tauri/target/
 .env
 .env.local
 .env.*.local
+
+# Agent tooling
+.superpowers/
