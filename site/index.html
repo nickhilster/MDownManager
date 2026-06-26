@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MDownManager — Your markdown, finally searchable</title>
+<meta name="description" content="A local-first Markdown knowledge base with semantic search, AI summaries, a built-in security scanner, and a local HTTP API. Your notes never leave your machine." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #fbf9f5;
+    --paper-2: #f4efe6;
+    --card: #ffffff;
+    --ink: #211c16;
+    --ink-soft: #5b5247;
+    --ink-faint: #8b8073;
+    --line: #e7dfd2;
+    --line-strong: #d8cdba;
+    --amber: #c8861e;
+    --amber-soft: #f2d79a;
+    --highlight: #ffe9a8;
+    --indigo: #3b4cca;
+    --green: #3f7d54;
+    --radius: 16px;
+    --maxw: 1080px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: "Inter", system-ui, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(200,134,30,0.06), transparent 38%),
+      radial-gradient(circle at 88% 4%, rgba(59,76,202,0.05), transparent 32%);
+  }
+  h1, h2, h3 { font-family: "Fraunces", Georgia, serif; font-weight: 600; line-height: 1.12; letter-spacing: -0.01em; color: var(--ink); }
+  a { color: inherit; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+  .mono { font-family: "JetBrains Mono", monospace; }
+
+  .hl { position: relative; white-space: nowrap; }
+  .hl::after {
+    content: ""; position: absolute; left: -2px; right: -2px; bottom: 4px; height: 42%;
+    background: var(--highlight); z-index: -1; border-radius: 2px;
+    transform: rotate(-1deg);
+  }
+
+  nav { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(8px);
+    background: rgba(251,249,245,0.82); border-bottom: 1px solid var(--line); }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: "Fraunces", serif; font-weight: 600; font-size: 19px; }
+  .brand .glyph { width: 30px; height: 30px; border-radius: 8px; background: var(--ink); color: var(--paper);
+    display: grid; place-items: center; font-family: "JetBrains Mono", monospace; font-size: 15px; font-weight: 600; }
+  .nav-links { display: flex; align-items: center; gap: 28px; }
+  .nav-links a { text-decoration: none; color: var(--ink-soft); font-size: 14px; font-weight: 500; }
+  .nav-links a:hover { color: var(--ink); }
+  .btn { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px;
+    border-radius: 10px; padding: 10px 18px; text-decoration: none; cursor: pointer; border: 1px solid transparent; transition: .15s; }
+  .btn-primary { background: var(--ink); color: var(--paper); }
+  .btn-primary:hover { background: #000; transform: translateY(-1px); }
+  .btn-ghost { background: var(--card); color: var(--ink); border-color: var(--line-strong); }
+  .btn-ghost:hover { border-color: var(--ink); }
+  @media (max-width: 720px) { .nav-links a:not(.btn) { display: none; } }
+
+  header { padding: 76px 0 40px; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: "JetBrains Mono", monospace;
+    font-size: 12px; letter-spacing: .04em; color: var(--ink-soft); background: var(--paper-2);
+    border: 1px solid var(--line-strong); padding: 6px 12px; border-radius: 100px; margin-bottom: 26px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+  h1.hero { font-size: clamp(40px, 6vw, 68px); font-weight: 600; max-width: 16ch; }
+  .hero-sub { font-size: clamp(17px, 2.2vw, 20px); color: var(--ink-soft); max-width: 52ch; margin-top: 22px; }
+  .hero-cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 34px; align-items: center; }
+  .meta-line { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--ink-faint); margin-top: 18px; }
+
+  .preview { margin-top: 56px; background: var(--card); border: 1px solid var(--line-strong);
+    border-radius: var(--radius); box-shadow: 0 24px 60px -30px rgba(33,28,22,0.35); overflow: hidden; }
+  .pv-bar { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--line);
+    background: var(--paper-2); }
+  .pv-bar .lights { display: flex; gap: 6px; }
+  .pv-bar .lights i { width: 11px; height: 11px; border-radius: 50%; display: block; }
+  .pv-path { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--ink-faint); margin-left: 8px; }
+  .pv-body { display: grid; grid-template-columns: 220px 1fr; min-height: 320px; }
+  .pv-tree { border-right: 1px solid var(--line); padding: 16px 14px; background: #fdfbf7; font-size: 13px; }
+  .pv-tree .grp { color: var(--ink-faint); font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: .05em; margin: 14px 0 8px; }
+  .pv-tree .grp:first-child { margin-top: 0; }
+  .pv-tree .row { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 7px; color: var(--ink-soft); }
+  .pv-tree .row.active { background: var(--highlight); color: var(--ink); font-weight: 500; }
+  .pv-tree .badge { margin-left: auto; font-size: 10px; font-family: "JetBrains Mono", monospace;
+    padding: 1px 6px; border-radius: 5px; }
+  .badge.risk { background: #fbe3e0; color: #b3261e; }
+  .badge.ok { background: #e3f0e7; color: var(--green); }
+  .pv-main { padding: 26px 30px; }
+  .pv-main h4 { font-family: "Fraunces", serif; font-size: 24px; font-weight: 600; margin-bottom: 6px; }
+  .pv-summary { background: var(--paper-2); border: 1px dashed var(--line-strong); border-radius: 10px;
+    padding: 12px 14px; font-size: 13.5px; color: var(--ink-soft); margin: 14px 0 18px; }
+  .pv-summary b { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--amber); display: block; margin-bottom: 4px; letter-spacing: .05em; }
+  .pv-md { font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--ink-soft); line-height: 1.9; }
+  .pv-md .h { color: var(--indigo); }
+  .pv-md .b { color: var(--ink); }
+  @media (max-width: 680px) { .pv-tree { display: none; } .pv-body { grid-template-columns: 1fr; } }
+
+  section { padding: 72px 0; }
+  .sec-head { max-width: 60ch; margin-bottom: 44px; }
+  .sec-head .kicker { font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--amber); margin-bottom: 14px; }
+  .sec-head h2 { font-size: clamp(28px, 4vw, 40px); }
+  .sec-head p { color: var(--ink-soft); font-size: 17px; margin-top: 14px; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+  .feat { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; transition: .18s; }
+  .feat:hover { border-color: var(--line-strong); transform: translateY(-3px); box-shadow: 0 18px 40px -28px rgba(33,28,22,0.4); }
+  .feat .ic { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    background: var(--paper-2); border: 1px solid var(--line); margin-bottom: 16px; font-size: 19px; }
+  .feat h3 { font-size: 19px; margin-bottom: 8px; }
+  .feat p { color: var(--ink-soft); font-size: 14.5px; }
+
+  .band { background: var(--ink); color: var(--paper); border-radius: 24px; padding: 56px; margin: 0 24px;
+    background-image: radial-gradient(circle at 85% 15%, rgba(200,134,30,0.22), transparent 45%); }
+  .band-inner { max-width: var(--maxw); margin: 0 auto; display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center; }
+  .band h2 { color: var(--paper); font-size: clamp(28px,4vw,40px); }
+  .band p { color: #cfc6b8; margin-top: 16px; font-size: 16px; }
+  .band .check { display: flex; gap: 12px; margin-top: 16px; align-items: flex-start; color: #e9e2d6; font-size: 14.5px; }
+  .band .check .c { color: var(--amber-soft); font-weight: 700; }
+  .api { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14); border-radius: 14px;
+    padding: 20px; font-family: "JetBrains Mono", monospace; font-size: 13px; color: #d6cdbd; }
+  .api .cm { color: #8c8478; }
+  .api .mt { color: var(--amber-soft); }
+  .api .st { color: #9fd6ad; }
+  @media (max-width: 760px) { .band { padding: 36px 26px; } .band-inner { grid-template-columns: 1fr; } }
+
+  .price-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 900px) { .price-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .price-grid { grid-template-columns: 1fr; } }
+  .tier { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px 22px; display: flex; flex-direction: column; }
+  .tier.feat-tier { border-color: var(--amber); box-shadow: 0 0 0 1px var(--amber), 0 20px 50px -30px rgba(200,134,30,0.6); position: relative; }
+  .tier.feat-tier::before { content: "Most popular"; position: absolute; top: -11px; left: 22px;
+    background: var(--amber); color: #fff; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 100px;
+    font-family: "Inter"; }
+  .tier .tname { font-family: "Fraunces", serif; font-size: 20px; font-weight: 600; }
+  .tier .tprice { font-size: 32px; font-weight: 600; margin: 12px 0 2px; font-family: "Fraunces", serif; }
+  .tier .tnote { font-size: 12.5px; color: var(--ink-faint); min-height: 18px; }
+  .tier ul { list-style: none; margin: 18px 0; display: flex; flex-direction: column; gap: 9px; flex: 1; }
+  .tier li { font-size: 13.5px; color: var(--ink-soft); display: flex; gap: 9px; align-items: flex-start; }
+  .tier li::before { content: "✓"; color: var(--green); font-weight: 700; }
+  .tier .btn { justify-content: center; width: 100%; }
+
+  footer { border-top: 1px solid var(--line); padding: 48px 0 60px; margin-top: 40px; }
+  .foot-inner { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px; align-items: center; }
+  footer .brand { font-size: 17px; }
+  .foot-links { display: flex; gap: 24px; font-size: 13.5px; color: var(--ink-soft); }
+  .foot-links a { text-decoration: none; }
+  .foot-links a:hover { color: var(--ink); }
+  .foot-note { font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--ink-faint); margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-inner">
+    <div class="brand"><span class="glyph">M&darr;</span> MDownManager</div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#local">Local-first</a>
+      <a href="#pricing">Pricing</a>
+      <a class="btn btn-primary" href="#pricing">Download</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <div class="wrap">
+    <span class="eyebrow"><span class="dot"></span> v0.3.1 · Windows 10+ · runs fully offline</span>
+    <h1 class="hero">Your markdown, finally <span class="hl">searchable</span>.</h1>
+    <p class="hero-sub">MDownManager turns any folder of <span class="mono">.md</span> files into a structured knowledge base — with semantic search, AI summaries, and a built-in security scanner. Everything stays on your machine.</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#pricing">&darr; Download for Windows</a>
+      <a class="btn btn-ghost" href="#features">See how it works</a>
+    </div>
+    <p class="meta-line">// Tauri 2 · Rust core · SQLite · no account, no cloud, no telemetry</p>
+
+    <div class="preview">
+      <div class="pv-bar">
+        <span class="lights"><i style="background:#e9897e"></i><i style="background:#e8c468"></i><i style="background:#8cc99a"></i></span>
+        <span class="pv-path">~/vault/engineering</span>
+      </div>
+      <div class="pv-body">
+        <div class="pv-tree">
+          <div class="grp">// VAULT</div>
+          <div class="row active">architecture.md <span class="badge ok">clean</span></div>
+          <div class="row">onboarding.md</div>
+          <div class="row">deploy-runbook.md <span class="badge risk">2 secrets</span></div>
+          <div class="grp">// CATEGORIES</div>
+          <div class="row">design</div>
+          <div class="row">infra</div>
+          <div class="row">postmortems</div>
+        </div>
+        <div class="pv-main">
+          <h4>architecture.md</h4>
+          <div class="pv-summary">
+            <b>// AI SUMMARY · local model</b>
+            Defines the service boundaries between the ingest worker and the query API, and why SQLite WAL was chosen over Postgres for the local store.
+          </div>
+          <div class="pv-md">
+            <span class="h"># System architecture</span><br/>
+            The vault indexer walks files <span class="b">recursively</span> and writes<br/>
+            embeddings to a local store. Search runs over<br/>
+            <span class="h">`cosine similarity`</span> — no request ever leaves the host.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">What it does</div>
+      <h2>A knowledge layer that respects your files.</h2>
+      <p>Point it at a folder. It indexes, summarizes, and scans — then gets out of your way.</p>
+    </div>
+    <div class="grid">
+      <div class="feat"><div class="ic">🗂️</div><h3>Vault indexing</h3><p>Index any folder of markdown recursively. Add a GitHub repo and it clones and indexes it for you.</p></div>
+      <div class="feat"><div class="ic">🔎</div><h3>Semantic search</h3><p>Vector embeddings with cosine similarity. Switch between keyword and meaning-based search instantly.</p></div>
+      <div class="feat"><div class="ic">✶</div><h3>AI summaries</h3><p>Automatic abstracts for every file via local Ollama or your choice of Anthropic, OpenAI, DeepSeek, or Google.</p></div>
+      <div class="feat"><div class="ic">🛡️</div><h3>Security scanner</h3><p>14+ rules including Gitleaks patterns flag secrets, credentials, and PII with risk badges right in the tree.</p></div>
+      <div class="feat"><div class="ic">🏷️</div><h3>Categories &amp; explorer</h3><p>Tag and browse by category — manually or AI-assigned — with a directory tree view and inline risk badges.</p></div>
+      <div class="feat"><div class="ic">⚡</div><h3>Local HTTP API</h3><p>A REST API at <span class="mono">localhost:7734</span> so your IDE agents can query the vault programmatically.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="band" id="local">
+  <div class="band-inner">
+    <div>
+      <h2>Local-first, by design.</h2>
+      <p>No account. No upload. No telemetry. The Rust core indexes and searches entirely on your machine, and you decide whether AI runs locally through Ollama or through a cloud model you bring yourself.</p>
+      <div class="check"><span class="c">✓</span> Files never leave the host unless you opt into a cloud model</div>
+      <div class="check"><span class="c">✓</span> SQLite (WAL) store you can inspect and back up yourself</div>
+      <div class="check"><span class="c">✓</span> Open local API for IDE and agent integrations</div>
+    </div>
+    <div class="api">
+      <span class="cm"># query your vault from anywhere local</span><br/>
+      <span class="mt">GET</span> <span class="st">localhost:7734</span>/search<br/>
+      &nbsp;&nbsp;?q=auth+token+rotation<br/>
+      &nbsp;&nbsp;&amp;mode=semantic<br/><br/>
+      <span class="cm"># → ranked results, on-device</span>
+    </div>
+  </div>
+</div>
+
+<section id="pricing">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">Pricing</div>
+      <h2>Free to start. Fair to grow.</h2>
+      <p>The core is free forever. Paid tiers unlock unlimited vaults and commercial rights.</p>
+    </div>
+    <div class="price-grid">
+      <div class="tier">
+        <div class="tname">Free</div>
+        <div class="tprice">$0</div>
+        <div class="tnote">No credit card required</div>
+        <ul><li>1 vault</li><li>Full-text search</li><li>Security scanner</li><li>Explorer &amp; categories</li><li>Local AI (Ollama)</li></ul>
+        <a class="btn btn-primary" href="#">&darr; Download for Windows</a>
+      </div>
+      <div class="tier feat-tier">
+        <div class="tname">Individual</div>
+        <div class="tprice">$20<span style="font-size:14px;color:var(--ink-faint)">/yr</span></div>
+        <div class="tnote">per year</div>
+        <ul><li>Unlimited vaults</li><li>Everything in Free</li><li>Priority support</li><li>All future updates</li></ul>
+        <a class="btn btn-ghost" href="#">Buy Individual</a>
+      </div>
+      <div class="tier">
+        <div class="tname">Commercial</div>
+        <div class="tprice">$149<span style="font-size:14px;color:var(--ink-faint)">/yr</span></div>
+        <div class="tnote">up to 10 seats</div>
+        <ul><li>Unlimited vaults</li><li>10 seat license</li><li>Commercial use rights</li><li>Priority support</li></ul>
+        <a class="btn btn-ghost" href="#">Buy Commercial</a>
+      </div>
+      <div class="tier">
+        <div class="tname">Non-profit</div>
+        <div class="tprice">Free</div>
+        <div class="tnote">on application</div>
+        <ul><li>Unlimited vaults</li><li>Everything in Commercial</li><li>For registered non-profits</li></ul>
+        <a class="btn btn-ghost" href="#">Apply</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-inner">
+      <div class="brand"><span class="glyph">M&darr;</span> MDownManager</div>
+      <div class="foot-links">
+        <a href="https://teambotics.app">By Teambotics</a>
+        <a href="https://github.com/nickhilster/MDownManager">GitHub</a>
+        <a href="mailto:hello@teambotics.app">Contact</a>
+      </div>
+    </div>
+    <p class="foot-note">// Elastic License 2.0 — free for personal &amp; non-commercial use · commercial licensing: hello@teambotics.app</p>
+  </div>
+</footer>
+
+  <!-- Vercel Web Analytics (activates when enabled in the Vercel project) -->
+  <script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
