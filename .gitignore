@@ -38,3 +38,7 @@ src-tauri/target/
 
 # Agent tooling
 .superpowers/
+
+# Python (license tooling in scripts/)
+__pycache__/
+*.py[cod]
