@@ -1,10 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
 
-export type Tier = "free" | "commercial" | "nonprofit";
+export type Tier = "free" | "individual" | "commercial" | "nonprofit";
 
 export type Feature = "agent_api" | "auto_scan" | "semantic_search";
 
-export type BrandingVariant = "free" | "commercial" | "nonprofit";
+export type BrandingVariant = "free" | "individual" | "commercial" | "nonprofit";
 
 export interface ActiveLicense {
   tier: Tier;
@@ -41,6 +41,8 @@ export function splashStripLabel(license: ActiveLicense): string {
       return "Non-profit Edition · Powered by Teambotics";
     case "commercial":
       return "Powered by Teambotics";
+    case "individual":
+      return "Individual Edition · Powered by Teambotics";
     case "free":
     default:
       return "Free Edition";

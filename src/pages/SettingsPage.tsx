@@ -346,7 +346,11 @@ GET /files/<id>/content          — raw Markdown`}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-accent)]/15 text-[var(--color-accent)] font-medium capitalize">
-                {license.tier === "nonprofit" ? "Non-profit" : "Commercial"}
+                {license.tier === "nonprofit"
+                  ? "Non-profit"
+                  : license.tier === "individual"
+                  ? "Individual"
+                  : "Commercial"}
               </span>
               <span className="text-xs text-[var(--color-text-muted)]">license active</span>
             </div>
@@ -392,6 +396,8 @@ GET /files/<id>/content          — raw Markdown`}
               ? `Non-profit license${license.org_name ? ` · Licensed to ${license.org_name}` : ""}`
               : license.tier === "commercial"
               ? "Commercial license"
+              : license.tier === "individual"
+              ? "Individual license"
               : "Free"}{" "}
             · Powered by{" "}
             <a

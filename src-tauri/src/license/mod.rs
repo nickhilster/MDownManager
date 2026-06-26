@@ -4,11 +4,18 @@ use anyhow::{anyhow, Result};
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use types::{ActiveLicense, BrandingVariant, Feature, LicenseClaims, Tier};
 
-/// RSA-2048 public key used to verify license tokens issued by teambotics.com.
-/// Replace with the real production public key before shipping.
-/// Generate a test pair: `openssl genrsa -out test.pem 2048 && openssl rsa -in test.pem -pubout -out test_pub.pem`
+/// RSA-2048 public key used to verify MDownManager license tokens issued by Teambotics.
+/// MDownManager uses its own dedicated key pair; the private key lives at
+/// ~/.mdownmanager/license_private.pem and is never committed.
+/// Regenerate with: python scripts/generate_license_keys.py
 const PUBLIC_KEY_PEM: &str = "-----BEGIN PUBLIC KEY-----
-REPLACE_WITH_REAL_PUBLIC_KEY_PEM
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsHC03N0L63zaxiUL95AJ
+v6MkSgRO2LUJbawHjaxrMVoMr2vFSSMZEAWzinrQ8QNOQlQlbk2qC78kCo7RwM1Y
+/2p9wHxEKB/DUdB4qM7aQfc6FlUVs7wqJw+xTMMz4XkN2kWPOMdt36l7/Q8/g+H2
+y+3Gu1RYnVw6NErYNl/XTIk+JHJm96sHG6WssG3YPd3QFBTfEHDmqwlFgGi6GQaQ
+Yzickxu5SK2ZpdDgrEtgwe2ATKugbXmp8dlog4En0yCzHvvhoVerJO+UfzIDtpsi
+ZI58crTSdctCwPG7XqXpDzt/DARVAe+TddmcBN/GW1sMxuYSVKTs6q8uRRDa+6TR
+1QIDAQAB
 -----END PUBLIC KEY-----";
 
 pub fn verify_token(token: &str) -> Result<ActiveLicense> {

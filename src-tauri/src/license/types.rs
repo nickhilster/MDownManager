@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "snake_case")]
 pub enum Tier {
     Free,
+    Individual,
     Commercial,
     Nonprofit,
 }
@@ -18,6 +19,7 @@ impl std::fmt::Display for Tier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Tier::Free => write!(f, "free"),
+            Tier::Individual => write!(f, "individual"),
             Tier::Commercial => write!(f, "commercial"),
             Tier::Nonprofit => write!(f, "nonprofit"),
         }
@@ -36,6 +38,7 @@ pub enum Feature {
 #[serde(rename_all = "snake_case")]
 pub enum BrandingVariant {
     Free,
+    Individual,
     Commercial,
     Nonprofit,
 }
