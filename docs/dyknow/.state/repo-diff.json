@@ -1,11 +1,11 @@
 {
-  "comparedAt": "2026-06-27T03:13:39.460Z",
+  "comparedAt": "2026-06-27T14:06:20.187Z",
   "rootPath": "C:\\dev\\MDownManager",
   "configPath": "dyknow.config.json",
   "baseSnapshotPath": "docs/dyknow/.state/repo-map.json",
   "outputPath": "docs/dyknow/.state/repo-diff.json",
-  "previousScannedAt": "2026-06-27T03:13:22.833Z",
-  "currentScannedAt": "2026-06-27T03:13:39.460Z",
+  "previousScannedAt": "2026-06-27T14:06:01.475Z",
+  "currentScannedAt": "2026-06-27T14:06:20.187Z",
   "addedFiles": [],
   "changedFiles": [
     {

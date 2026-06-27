@@ -1,5 +1,5 @@
 {
-  "draftedAt": "2026-06-27T03:13:49.495Z",
+  "draftedAt": "2026-06-27T14:06:28.992Z",
   "rootPath": "C:\\dev\\MDownManager",
   "configPath": "dyknow.config.json",
   "repoDiffPath": "docs/dyknow/.state/repo-diff.json",
@@ -25,7 +25,7 @@
           "README.md"
         ],
         "proposedText": "# Product Overview\n\n## What changed\nDyKnow detected changed file for this page.\n\n## Affected sources\n- README.md\n\n## Review notes\nConfirm the product truth, audience fit, and Cloud versus Local positioning still match the updated sources.\n\n<!-- dyknow:update local-stub -->",
-        "confidence": "low",
+        "confidence": "medium",
         "risk": "low",
         "reviewState": "Published",
         "requiresHumanReview": true
@@ -61,7 +61,7 @@
           "README.md"
         ],
         "proposedText": "# Feature Map\n\n## Review focus\nUpdate implemented versus planned command status and any changed workflow descriptions.\n\n## Affected sources\n- README.md\n\n## Notes\nKeep command names and status labels aligned with the codebase.\n\n<!-- dyknow:update local-stub -->",
-        "confidence": "low",
+        "confidence": "medium",
         "risk": "low",
         "reviewState": "Published",
         "requiresHumanReview": true
@@ -97,7 +97,7 @@
           "README.md"
         ],
         "proposedText": "# Architecture\n\n## Review focus\nUpdate shared-engine responsibilities, CLI ownership boundaries, and trust-boundary behavior affected by these source changes.\n\n## Affected sources\n- README.md\n\n## Notes\nPreserve the distinction between DyKnow Local, DyKnow Cloud, and shared engine behavior.\n\n<!-- dyknow:update local-stub -->",
-        "confidence": "low",
+        "confidence": "medium",
         "risk": "low",
         "reviewState": "Published",
         "requiresHumanReview": true
@@ -133,7 +133,7 @@
           "README.md"
         ],
         "proposedText": "# Setup Guide\n\n## Review focus\nUpdate command order, prerequisite artifacts, and operator-facing safety notes affected by these changes.\n\n## Affected sources\n- README.md\n\n## Notes\nKeep the guide chronological and explicit about required flags and outputs.\n\n<!-- dyknow:update local-stub -->",
-        "confidence": "low",
+        "confidence": "medium",
         "risk": "low",
         "reviewState": "Published",
         "requiresHumanReview": true
