@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DyKnow Progress and Status Report</title>
+  <style>
+    :root {
+      --bg: #0a1328;
+      --panel: #111d3d;
+      --panel-2: #18305f;
+      --text: #ecf3ff;
+      --muted: #c0d0f2;
+      --accent: #6bd6ff;
+      --good: #66d59b;
+      --warn: #ffd166;
+      --border: #27457f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Arial", sans-serif;
+      background:
+        radial-gradient(1000px 700px at 100% 0%, rgba(72, 130, 255, 0.28), transparent 60%),
+        linear-gradient(180deg, #091120 0%, #0a1328 100%);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+
+    .hero, .card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(24, 48, 95, 0.92), rgba(17, 29, 61, 0.96));
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+    }
+
+    .hero {
+      padding: 24px;
+    }
+
+    h1, h2 {
+      margin: 0 0 10px;
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 3vw, 2.5rem);
+    }
+
+    h2 {
+      color: var(--accent);
+      font-size: 1.1rem;
+    }
+
+    p {
+      margin: 8px 0;
+      color: var(--muted);
+    }
+
+    .meta, .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .meta {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-top: 16px;
+    }
+
+    .meta div, .card {
+      padding: 14px 16px;
+    }
+
+    .meta div {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(8, 13, 27, 0.28);
+    }
+
+    .grid {
+      grid-template-columns: repeat(12, 1fr);
+      margin-top: 18px;
+    }
+
+    .kpi { grid-column: span 3; }
+    .wide { grid-column: span 8; }
+    .narrow { grid-column: span 4; }
+
+    .value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin: 4px 0;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .badge {
+      display: inline-block;
+      margin: 6px 8px 0 0;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .good {
+      color: var(--good);
+      background: rgba(102, 213, 155, 0.1);
+      border-color: rgba(102, 213, 155, 0.4);
+    }
+
+    .warn {
+      color: var(--warn);
+      background: rgba(255, 209, 102, 0.1);
+      border-color: rgba(255, 209, 102, 0.4);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 0.94rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 9px 10px;
+      border-bottom: 1px solid rgba(39, 69, 127, 0.85);
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    ul {
+      margin: 8px 0 0 18px;
+      color: var(--muted);
+    }
+
+    code {
+      background: rgba(8, 13, 27, 0.45);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1px 6px;
+      color: #dbe8ff;
+    }
+
+    .footer {
+      margin-top: 26px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 950px) {
+      .kpi, .wide, .narrow {
+        grid-column: span 12;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <h1>DyKnow Progress and Status Report</h1>
+      <p>Generated from live repository metadata plus the current DyKnow state artifacts.</p>
+      <div class="meta">
+        <div><strong>Report Date:</strong> 2026-06-27</div>
+        <div><strong>Repository:</strong> MDownManager</div>
+        <div><strong>Branch:</strong> main</div>
+        <div><strong>HEAD:</strong> <code>11849de</code></div>
+        <div><strong>Total Commits:</strong> 49</div>
+        <div><strong>Latest Commit:</strong> feat(site): wire real download + checkout URLs (MDownManager)</div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <article class="card kpi">
+        <div class="value">4</div>
+        <div class="label">Affected Pages in Current Repo Diff</div>
+      </article>
+      <article class="card kpi">
+        <div class="value">4</div>
+        <div class="label">Draft Proposals in Current Update Batch</div>
+      </article>
+      <article class="card kpi">
+        <div class="value">4</div>
+        <div class="label">Audit Entries Available</div>
+      </article>
+      <article class="card kpi">
+        <div class="value">Dirty</div>
+        <div class="label">Working Tree Status</div>
+      </article>
+
+      <article class="card wide">
+        <h2>Executive Summary</h2>
+        <p>This report is generated from current git metadata and validated DyKnow artifacts instead of hard-coded snapshot values.</p>
+        <p>The repository is on <code>main</code> at <code>11849de</code> with 49 commit(s). The latest commit is <code>feat(site): wire real download + checkout URLs (MDownManager)</code>.</p>
+        <div>
+          <span class="badge warn">Worktree: Has local changes</span>
+          <span class="badge warn">Drafts: 4</span>
+          <span class="badge warn">Affected Pages: 4</span>
+        </div>
+      </article>
+
+      <article class="card wide">
+        <h2>Working Tree Changes</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Path</th>
+              <th>Raw Git Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>M</td><td><code>site/index.html</code></td><td>M site/index.html</td></tr><tr><td>??</td><td><code>docs/dyknow/</code></td><td>?? docs/dyknow/</td></tr><tr><td>??</td><td><code>dyknow.config.json</code></td><td>?? dyknow.config.json</td></tr><tr><td>??</td><td><code>dyknow.config.schema.json</code></td><td>?? dyknow.config.schema.json</td></tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="card narrow">
+        <h2>Current Readiness</h2>
+        <ul>
+          <li>Repo diff artifact: present</li>
+          <li>Update proposal artifact: present</li>
+          <li>Audit visibility: entries available</li>
+          <li>Working tree: contains local changes</li>
+        </ul>
+      </article>
+
+      <article class="card wide">
+        <h2>Repo Diff Summary</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Added files</td><td>0</td></tr>
+            <tr><td>Changed files</td><td>1</td></tr>
+            <tr><td>Removed files</td><td>0</td></tr>
+            <tr><td>Added warnings</td><td>0</td></tr>
+            <tr><td>Removed warnings</td><td>0</td></tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="card wide">
+        <h2>Affected Pages</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Page</th>
+              <th>Output</th>
+              <th>Reasons</th>
+              <th>Matched Sources</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>product-overview</td><td>docs/dyknow/product-overview.md</td><td>changed-file</td><td>README.md</td></tr><tr><td>feature-map</td><td>docs/dyknow/feature-map.md</td><td>changed-file</td><td>README.md</td></tr><tr><td>architecture</td><td>docs/dyknow/architecture.md</td><td>changed-file</td><td>README.md</td></tr><tr><td>setup-guide</td><td>docs/dyknow/setup-guide.md</td><td>changed-file</td><td>README.md</td></tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="card narrow">
+        <h2>Proposal States</h2>
+        <ul><li>Approved: 4</li></ul>
+      </article>
+
+      <article class="card wide">
+        <h2>Draft Proposals</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Page</th>
+              <th>State</th>
+              <th>Risk</th>
+              <th>Confidence</th>
+              <th>Sources</th>
+              <th>Summary</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>product-overview</td><td>Approved</td><td>low</td><td>low</td><td>README.md</td><td>Review Product Overview for 1 changed source path(s).</td></tr><tr><td>feature-map</td><td>Approved</td><td>low</td><td>low</td><td>README.md</td><td>Review Feature Map for 1 changed source path(s).</td></tr><tr><td>architecture</td><td>Approved</td><td>low</td><td>low</td><td>README.md</td><td>Review Architecture for 1 changed source path(s).</td></tr><tr><td>setup-guide</td><td>Approved</td><td>low</td><td>low</td><td>README.md</td><td>Review Setup Guide for 1 changed source path(s).</td></tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="card wide">
+        <h2>Recent Audit Activity</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Action</th>
+              <th>Sources</th>
+              <th>Log</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>2026-06-27T03:13:49.654Z</td><td>review:approve</td><td>README.md</td><td>docs/dyknow/.state/audit-log.jsonl</td></tr><tr><td>2026-06-27T03:13:49.654Z</td><td>review:approve</td><td>README.md</td><td>docs/dyknow/.state/audit-log.jsonl</td></tr><tr><td>2026-06-27T03:13:49.654Z</td><td>review:approve</td><td>README.md</td><td>docs/dyknow/.state/audit-log.jsonl</td></tr><tr><td>2026-06-27T03:13:49.654Z</td><td>review:approve</td><td>README.md</td><td>docs/dyknow/.state/audit-log.jsonl</td></tr>
+          </tbody>
+        </table>
+      </article>
+    </div>
+
+    <p class="footer">Generated by DyKnow Local at <code>dyknow-progress-status.html</code>.</p>
+  </div>
+</body>
+</html>

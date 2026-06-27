@@ -1,0 +1,113 @@
+{
+  "$schema": "./dyknow.config.schema.json",
+  "projectName": "MDownManager",
+  "mode": "local-only",
+  "allowedSources": [
+    "README.md",
+    "docs/**",
+    "public/**",
+    "scripts/**",
+    "site/**",
+    "src/**",
+    "src-tauri/**",
+    "workers/**",
+    "package.json",
+    "package-lock.json",
+    "tsconfig*.json",
+    "vite.config.ts",
+    "vercel.json",
+    "index.html",
+    "product-page.html",
+    "README_COMPREHENSIVE.md"
+  ],
+  "ignoredSources": [
+    ".env",
+    ".env.*",
+    "secrets/**",
+    "node_modules/**",
+    "dist/**",
+    "coverage/**",
+    "logs/**"
+  ],
+  "pages": [
+    {
+      "id": "product-overview",
+      "title": "Product Overview",
+      "outputPath": "docs/dyknow/product-overview.md",
+      "audience": "mixed",
+      "sources": [
+        "README.md",
+        "README_COMPREHENSIVE.md",
+        "docs/**",
+        "site/**",
+        "src/**",
+        "src-tauri/**",
+        "product-page.html"
+      ],
+      "reviewRules": {
+        "approvalRequired": true
+      }
+    },
+    {
+      "id": "feature-map",
+      "title": "Feature Map",
+      "outputPath": "docs/dyknow/feature-map.md",
+      "audience": "mixed",
+      "sources": [
+        "README.md",
+        "docs/**",
+        "src/**",
+        "src-tauri/**",
+        "workers/**",
+        "site/**"
+      ],
+      "reviewRules": {
+        "approvalRequired": true
+      }
+    },
+    {
+      "id": "architecture",
+      "title": "Architecture",
+      "outputPath": "docs/dyknow/architecture.md",
+      "audience": "mixed",
+      "sources": [
+        "README.md",
+        "README_COMPREHENSIVE.md",
+        "docs/**",
+        "src/**",
+        "src-tauri/**",
+        "workers/**",
+        "package.json",
+        "vite.config.ts"
+      ],
+      "reviewRules": {
+        "approvalRequired": true
+      }
+    },
+    {
+      "id": "setup-guide",
+      "title": "Setup Guide",
+      "outputPath": "docs/dyknow/setup-guide.md",
+      "audience": "external",
+      "sources": [
+        "README.md",
+        "README_COMPREHENSIVE.md",
+        "docs/**",
+        "package.json",
+        "scripts/**",
+        "src/**",
+        "src-tauri/**"
+      ],
+      "reviewRules": {
+        "approvalRequired": true
+      }
+    }
+  ],
+  "approvalRequired": true,
+  "llmProvider": "local",
+  "publishTargets": [],
+  "dependencyPolicy": {
+    "allow": [],
+    "deny": []
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "comparedAt": "2026-06-27T03:13:39.460Z",
+  "rootPath": "C:\\dev\\MDownManager",
+  "configPath": "dyknow.config.json",
+  "baseSnapshotPath": "docs/dyknow/.state/repo-map.json",
+  "outputPath": "docs/dyknow/.state/repo-diff.json",
+  "previousScannedAt": "2026-06-27T03:13:22.833Z",
+  "currentScannedAt": "2026-06-27T03:13:39.460Z",
+  "addedFiles": [],
+  "changedFiles": [
+    {
+      "path": "README.md",
+      "changes": [
+        "size"
+      ],
+      "before": {
+        "path": "README.md",
+        "kind": "markdown",
+        "size": 1239,
+        "lineCount": 35,
+        "signals": [
+          "documentation"
+        ],
+        "dependencies": [],
+        "routes": [],
+        "headings": [
+          "MDownManager",
+          "Features",
+          "Stack",
+          "Development",
+          "License"
+        ],
+        "topLevelKeys": []
+      },
+      "after": {
+        "path": "README.md",
+        "kind": "markdown",
+        "size": 1240,
+        "lineCount": 35,
+        "signals": [
+          "documentation"
+        ],
+        "dependencies": [],
+        "routes": [],
+        "headings": [
+          "MDownManager",
+          "Features",
+          "Stack",
+          "Development",
+          "License"
+        ],
+        "topLevelKeys": []
+      }
+    }
+  ],
+  "removedFiles": [],
+  "addedWarnings": [],
+  "removedWarnings": [],
+  "affectedPages": [
+    {
+      "pageId": "product-overview",
+      "outputPath": "docs/dyknow/product-overview.md",
+      "matchedSourcePaths": [
+        "README.md"
+      ],
+      "reasons": [
+        "changed-file"
+      ]
+    },
+    {
+      "pageId": "feature-map",
+      "outputPath": "docs/dyknow/feature-map.md",
+      "matchedSourcePaths": [
+        "README.md"
+      ],
+      "reasons": [
+        "changed-file"
+      ]
+    },
+    {
+      "pageId": "architecture",
+      "outputPath": "docs/dyknow/architecture.md",
+      "matchedSourcePaths": [
+        "README.md"
+      ],
+      "reasons": [
+        "changed-file"
+      ]
+    },
+    {
+      "pageId": "setup-guide",
+      "outputPath": "docs/dyknow/setup-guide.md",
+      "matchedSourcePaths": [
+        "README.md"
+      ],
+      "reasons": [
+        "changed-file"
+      ]
+    }
+  ],
+  "summary": {
+    "addedFiles": 0,
+    "changedFiles": 1,
+    "removedFiles": 0,
+    "addedWarnings": 0,
+    "removedWarnings": 0
+  }
+}
